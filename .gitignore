@@ -40,3 +40,4 @@ vignettes/*.pdf
 # mac files 
 .DS_Store
 
+packrat/lib*/

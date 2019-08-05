@@ -43,3 +43,6 @@ vignettes/*.pdf
 # packrat gitignore 
 packrat/lib*/
 packrat/src/*
+
+# data files 
+data/

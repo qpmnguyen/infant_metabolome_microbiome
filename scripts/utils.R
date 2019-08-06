@@ -24,6 +24,16 @@ key_processing <- function(key, type = "Unknown"){
   return(key)
 }
 
+# inverse transformations 
+inv_transform <- function(met, type){
+  if (type == "concentration"){
+    return(exp(met) - 1)
+  } else if (type == "binned"){
+    return(sin(met)^2)
+  }
+}
+
+
 
 ## refactoring modelfitting functions for single targets   
 
@@ -36,7 +46,7 @@ key_processing <- function(key, type = "Unknown"){
 #' @param out.folds Number of outer folds  
 #' @param distance Distance matrix of OTU based on the tree for SICS method 
 #' @param control This controls the parameter tuning portion of all models 
-modelfit.fn <- function(response, predictors, model, in.folds, out.folds, distance = NULL, folds = NULL, control = NULL){
+modelfit.fn <- function(response, predictors, model, in.folds, out.folds, resp_type, distance = NULL, folds = NULL, control = NULL){
   # certain model translations to work between common knowledge and caret specific syntax
   model_translate = list(enet = "glmnet", rf = "rf", svm = "svmRadial")
   if (is.null(control) == T){
@@ -48,32 +58,27 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, distan
   if (is.null(control) == F & length(control) < 4){
     stop("Control list not completely specified, please fill everything in if using custom control parameters")
   }
-  # initialize starting conditions 
-  rmse <- c()
-  r2 <- c()
-  rrse <- c()
-  corr <- c()
-  pred_rmse <- list() # metabolite specific rmse scores for multi-target models 
-  pred_r2 <- list()
-  pred_rrse <- list()
-  pred_corr <- list()
   # custom folds or random folds    
   if (is.null(folds) == T){
     folds <- createFolds(1:nrow(predictors),out.folds)  
   }
+  
   ctrl <- trainControl(method = control$method, number = in.folds, search = control$search, verboseIter = control$verboseIter)
+  
+  # initialize result 
+  result <- list()
+  # nested cross-validation  
   for(i in 1:length(folds)){
     test <- folds[[i]]
-    if (model %in% c("menet", "mspls", "mrf")){ # multivariate version requires a different way to split train_test  
-      met.train <- response[-test,] 
-      met.test <- response[test,]
-    } else {
-      met.train <- response[-test]
-      met.test <- response[test]
-    }
     tax.train <- predictors[-test,]
     tax.test <- predictors[test,]
-    
+    if (resp_type == "concentration"){
+      response_norm <- log(response + 1)
+    } else if (resp_type == "binned"){
+      response_norm <- asin(sqrt(response))
+    }
+    met.train <- response_norm[-test] # transformed output 
+    met.test <- response[test] # original data 
     # fitting models 
     if (model %in% c("enet", "svm", "rf")){
       fit <- train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]], 
@@ -109,40 +114,10 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, distan
                                           n_tree = 100,  m_feature = 5, min_leaf = 5,
                                           testX = tax.test)
     }
-    
-    # parsing outputs
-    # metabolite specific results from these models  
-    if (model %in% c("menet", "mspls", "mrf")){
-      pred_rmse[[i]] <- sapply(1:ncol(predictions), function(x){
-        score <- MLmetrics::RMSE(y_pred = as.vector(predictions[,x]), y_true = as.vector(met.test[,x]))
-        return(score)
-      })
-      pred_r2[[i]] <- sapply(1:ncol(predictions), function(x){
-        score <- MLmetrics::R2_Score(y_pred = as.vector(predictions[,x]), y_true = as.vector(met.test[,x]))
-        return(score)
-      })
-      pred_rrse[[i]] <- sapply(1:ncol(predictions), function(x){
-        score <- MLmetrics::RRSE(y_pred = as.vector(predictions[,x]), y_true = as.vector(met.test[,x]))
-        return(score)
-      })
-      pred_corr[[i]] <- sapply(1:ncol(predictions), function(x){
-        score <- cor(x = as.vector(predictions[,x]), y = as.vector(met.test[,x]), method = "pearson")
-        return(score)
-      })
-    }
-    rmse[i] <- MLmetrics::RMSE(y_pred = as.vector(predictions), y_true = as.vector(met.test))
-    r2[i] <- MLmetrics::R2_Score(y_pred = as.vector(predictions), y_true = as.vector(met.test))
-    rrse[i] <- MLmetrics::RRSE(y_pred = as.vector(predictions), y_true = as.vector(met.test))
-    corr[i] <- cor(x = as.vector(predictions), y = as.vector(met.test), method = "pearson")
-    print(paste("Finish fold",i,"..."))
+    predictions <- inv.transform(predictions, type = resp_type)
+    pair_res <- cbind(predictions, met.test)
+    result[[i]] <- pair_res
   }
-  result <- list(rmse = rmse, r2 = r2, rrse = rrse, corr = corr)
-  if (model %in% c("menet", "mspls", "mrf")){
-    result$pred_rmse <- pred_rmse
-    result$pred_r2 <- pred_r2
-    result$pred_rrse <- pred_rrse
-    result$pred_corr <- pred_corr
-  } 
   return(result)
 }
 

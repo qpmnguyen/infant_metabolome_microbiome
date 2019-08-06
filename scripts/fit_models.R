@@ -13,13 +13,16 @@ option_list <- list(
   make_option("--outfolds", type = "integer", help = "Number of outer folds"),
   make_option("--label", type = "character", help = "If not null simulations input this to have proper names", 
               default = NULL),
-  make_option("--processed", type = "logical", help = "Indicate whether data is already normalized"),
-  make_option("--distance", help = "Distance file for glmmTree", default = NULL)
+  make_option("--datatype", type = "character", help = "NMR data type which determines different transformations, can be 'concentrations' or 'binned'"),
+  make_option("--distance", help = "Distance file for SICS", default = NULL),
+  make_option("--ncores", help = "Number of cores")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
 if (opt$method %in% c("spls", "rf", "enet", "SICS", "svm") == FALSE){ stop("Not a supported model type")} # get models  
+
+registerDoParallel(opt$ncores)
 
 if (!is.null(opt$distance)){
   dist <- readRDS(file = opt$distance)
@@ -33,19 +36,19 @@ met <- data$met
 in.folds <- opt$infolds
 out.folds <- opt$outfolds
 
-if (opt$procesesed == FALSE){
-  tax[tax == 0] <- 1
-  tax <- unclass(acomp(tax))
-  tax <- unclass(clr(tax))
-} 
-
 tax <- scale(tax, center = T, scale = T)
-met <- scale(met, center = T, scale = T)
 
-
-results <- foreach(i = 1:ncol(met)){
-  
+if(is.null(ncol(met) == T)){ # if met is one vector 
+  results <- modelfit.fn(response = met, predictor = tax, model = opt$method, resp_type = opt$datatype, distance = dist, in.folds = in.folds, out.folds = out.folds)
+} else {
+  results <- foreach(i = 1:ncol(met)) %dopar% {
+    mod <- modelfit.fn(response = met[,i], predictor = tax, model = opt$method, resp_type = opt$datatype, distance = dist, in.folds = opt$infolds, out.folds = opt$outfolds)
+    mod
+  }
 }
+
+filename <- paste0("./",opt$label,"_", opt$method, "_", opt$datatype, ".rds")
+saveRDS(result, file = filename)
 
 
 

@@ -114,7 +114,7 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, resp_t
                                           n_tree = 100,  m_feature = 5, min_leaf = 5,
                                           testX = tax.test)
     }
-    predictions <- inv.transform(predictions, type = resp_type)
+    predictions <- inv_transform(predictions, type = resp_type)
     pair_res <- cbind(predictions, met.test)
     result[[i]] <- pair_res
   }

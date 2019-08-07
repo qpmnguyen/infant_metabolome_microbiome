@@ -35,8 +35,9 @@ phylo_obj <- phyloseq(otu_table(tax, taxa_are_rows = F),
 phylo_obj <- tax_glom(phylo_obj, taxrank = "Genus")
 phylo_obj <- prune_taxa(taxa_sums(phylo_obj) > 0, phylo_obj)
 
-tax <- as.matrix(otu_table(phylo_obj))
+tax <- as(otu_table(phylo_obj), "matrix")
 
+saveRDS(list(tax = tax, met = met),file = "./data/raw_data.rds")
 tax <- unclass(acomp(tax))
 tax[tax == 0] <- 1
 

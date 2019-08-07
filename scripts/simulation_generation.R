@@ -6,7 +6,9 @@ library(MCTools)
 library(phyloseq)
 library(SpiecEasi)
 library(compositions)
-
+library(picante)
+library(caret)
+library(MLmetrics)
 source("./scripts/utils.R")
 # grab appropriate data and perform preliminary processing  
 data <- load_main(file = "./data/data_directory.csv")
@@ -86,10 +88,17 @@ generate_data <- function(n_datasets, outcome_type, calibrate, correlation_type 
 }
 
 associated_results <- generate_data(n_datasets = 50, outcome_type = "assc", calibrate = tax, snr = 2, sample_size = 300)
-unassociated_results <- generate_data(n_datasets = 50, outcome_type = "none", calibrate = tax, snr = 2, sample_size = 300, calibrate_outcome = as.vector(met))
-
-dir.create("./simulated_data/")
-dir.create('./simulated_data/positive_sim/')
+unassociated_results <- generate_data(n_datasets = 50, outcome_type = "none", calibrate = tax, snr = 2, sample_size = 300, 
+                                      calibrate_outcome = as.vector(met))
+if (!dir.exists("./simulated_data/")){
+  dir.create("./simulated_data/")
+}
+if (!dir.exists("./simulated_data/positive_sim/")){
+  dir.create('./simulated_data/positive_sim/')
+}
+if (!dir.exists("./simulated_data/negative_sim/")){
+  dir.create('./simulated_data/negative_sim/')
+}
 
 sapply(1:50, function(x){
   obj <- associated_results[[x]]
@@ -97,12 +106,24 @@ sapply(1:50, function(x){
   saveRDS(obj, file = path)
 })
 
-dir.create('./simulated_data/negative_sim/')
 sapply(1:50, function(x){
   obj <- unassociated_results[[x]]
   path = paste0("./simulated_data/negative_sim/", "neg_sim_dataset",x,".rds")
   saveRDS(obj, file = path)
 })
 
+### Create new simulations using permutations  
+if (!dir.exists('./simulated_data/permute_sim/')){
+  dir.create('./simulated_data/permute_sim')
+}
 
+for (i in 1:1000){
+  rand_tax <- randomizeMatrix(tax, null.model = "richness", iterations = 1000)
+  rand_tax <- unclass(acomp(rand_tax))
+  rand_tax[rand_tax == 0] <- 1
+  rand_tax <- unclass(clr(rand_tax))
+  rand_met <- randomizeMatrix(met, null.model = "richness", iterations = 1000)
+  export <- list(tax = rand_tax, met = rand_met)
+  saveRDS(export, file = paste0("./simulated_data/permute_sim/randiter_",i,".rds"))
+}
 

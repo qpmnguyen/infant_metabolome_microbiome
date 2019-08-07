@@ -3,7 +3,7 @@ library(doParallel)
 library(caret)
 library(MLmetrics)
 library(optparse)
-
+library(parallel)
 source("./utils.R")
 
 option_list <- list(
@@ -18,35 +18,50 @@ option_list <- list(
   make_option("--ncores", help = "Number of cores")
 )
 
+
+
 opt <- parse_args(OptionParser(option_list = option_list))
+# check for consistency of methods 
+if (opt$method %in% c("spls", "rf", "enet", "SICS", "svm") == FALSE){ stop("Not a supported model type")} # get models
 
-if (opt$method %in% c("spls", "rf", "enet", "SICS", "svm") == FALSE){ stop("Not a supported model type")} # get models  
+print(paste("The number of cores:", opt$ncores))
 
-registerDoParallel(opt$ncores)
-
-if (!is.null(opt$distance)){
-  dist <- readRDS(file = opt$distance)
-} else {
-  dist <- NULL
-}
-
+# read data files and assign variables 
 data <- readRDS(file = opt$input)
 tax <- data$tax
 met <- data$met
 in.folds <- opt$infolds
 out.folds <- opt$outfolds
 
-tax <- scale(tax, center = T, scale = T)
-
-if(is.null(ncol(met) == T)){ # if met is one vector 
-  results <- modelfit.fn(response = met, predictor = tax, model = opt$method, resp_type = opt$datatype, distance = dist, in.folds = in.folds, out.folds = out.folds)
-} else {
-  results <- foreach(i = 1:ncol(met)) %dopar% {
-    mod <- modelfit.fn(response = met[,i], predictor = tax, model = opt$method, resp_type = opt$datatype, distance = dist, in.folds = opt$infolds, out.folds = opt$outfolds)
-    mod
-  }
+# convert to singular matrix form if there is only one column
+if (is.null(ncol(met)) == T){
+  met <- as.matrix(met)
 }
 
+# deal with missing distance 
+if (!is.null(opt$distance)){
+  dist <- readRDS(file = opt$distance)
+} else {
+  dist <- NULL
+}
+
+# scale and center taxonomic tables  
+tax <- scale(tax, center = T, scale = T)
+
+print("Starting loop...")
+# main dopar loop
+registerDoParallel(cores = opt$ncores)
+results <- foreach(i = 1:ncol(met)) %dopar% {
+    mod <- modelfit.fn(response = met[,i], predictor = tax, model = opt$method, 
+                       resp_type = opt$datatype, distance = dist, 
+                       in.folds = opt$infolds, out.folds = opt$outfolds)
+    cat(paste("Loop", i, "Finished..."), file=stdout())
+    mod
+    
+}
+
+print("End loop...")
+# save files  
 filename <- paste0("./",opt$label,"_", opt$method, "_", opt$datatype, ".rds")
 saveRDS(result, file = filename)
 

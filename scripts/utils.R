@@ -51,7 +51,7 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, resp_t
   model_translate = list(enet = "glmnet", rf = "rf", svm = "svmRadial")
   if (is.null(control) == T){
     print("Using default parameters for training...")
-    control <- list(method = "cv", search = "grid", verboseIter = T, tuneLength = 30)
+    control <- list(method = "cv", search = "grid", verboseIter = F, tuneLength = 30)
     print(control)
   }  
   # setting control parameters 

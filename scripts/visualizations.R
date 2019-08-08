@@ -1,3 +1,4 @@
+library(dplyr)
 library(ggplot2)
 library(phyloseq)
 library(reshape2)
@@ -15,7 +16,7 @@ source("./scripts/utils.R")
 tar <- readRDS(file = './data/tarNMR_clr_tax.rds')
 untar <- readRDS(file = "./data/untarNMR_clr_tax.rds")
 data <- load_main(file = "./data/data_directory.csv")
-tax <- data$tax.12M
+tax <- data$tax.6W
 key <- data$tax.key
 key <- key_processing(key, type = "NA")
 phylo_obj <- phyloseq(otu_table(tax, taxa_are_rows = F),
@@ -25,26 +26,29 @@ phylo_obj <- tax_glom(phylo_obj, taxrank = "Family")
 phylo_obj <- prune_taxa(taxa_sums(phylo_obj) > 0, phylo_obj)
 phylo_obj <- transform_sample_counts(phylo_obj, function(x) x/sum(x))
 
-p1 <- plot_bar(phylo_obj, fill = "Family", y = "Abundance", title = "Microbial Family") + theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none")
-ggsave(plot = p1,device = "pdf", filename = "./docs/12M_family_level_RA.pdf")
+p1 <- plot_bar(phylo_obj, fill = "Family", y = "Abundance", title = "Microbial Family") + 
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none")
+ggsave(plot = p1,device = "pdf", filename = "./docs/6W_family_level_RA.pdf")
+ggsave(plot = p1,device = "png", filename = "./docs/6W_family_level_RA.png",dpi = 'retina')
 
-
+met <- data$metabo.6W
 met <- unclass(acomp(met))
 p2 <- ggplot(melt(met), aes(x = Var1, y = value, fill = Var2)) + geom_bar(stat = "identity", color = "black") + 
   theme(axis.text.x = element_blank(), axis.ticks.x = element_blank(), legend.position = "none") + 
   labs(x = "Samples", y = "Abundance", title = "Concentration-fitted Metabolites")
-ggsave(plot = p2, device = "pdf", filename="./docs/12M_tarNMR_RA.pdf")
+ggsave(plot = p2, device = "pdf", filename="./docs/6W_tarNMR_RA.pdf")
+ggsave(plot = p2, device = "png", filename="./docs/6W_tarNMR_RA.png", dpi = "retina")
 
 combine_plot <- grid.arrange(p1, p2, nrow = 2, ncol = 1)
-ggsave(combine_plot, device = "pdf", filename = "./docs/12M_family_metabolite_RA.pdf")
-
+ggsave(combine_plot, device = "pdf", filename = "./docs/6W_family_metabolite_RA.pdf")
+ggsave(combine_plot, device = "png", filename = "./docs/6W_family_metabolite_RA.png", dpi = "retina")
 # ordiation plots 
-tax <- data$tax.12M
+tax <- data$tax.6W
 key <- data$tax.key
 key <- key_processing(key, type = "NA")
-tree <- read_tree(treefile = "./data/12M_tree.tre")
+tree <- read_tree(treefile = "./data/6W_tree.tre")
 tree <- midpoint.root(tree)
-met <- data$metabo.12M
+met <- data$metabo.6W
 phylo_obj <- phyloseq(otu_table(tax, taxa_are_rows = F),
                       tax_table(key), 
                       phy_tree(tree))
@@ -54,22 +58,44 @@ phylo_obj <- prune_taxa(taxa_sums(phylo_obj) > 0, phylo_obj)
 otu_table(phylo_obj) <- otu_table(phylo_obj) + 1 # pseudocount
 phylo_obj <- transform_sample_counts(phylo_obj, function(x) x/sum(x))
 
-aich_dist <- coda.base::dist(otu_table(phylo_obj), method = "aitchison")
+tax_aich_dist <- coda.base::dist(otu_table(phylo_obj), method = "aitchison")
+tax_gunifrac_dist <- MiSPU::GUniFrac(otu.tab = otu_table(phylo_obj), tree = phy_tree(phylo_obj), alpha = 0.5)$GUniF[,,1]
+tax_bray_dist <- vegdist(otu_table(phylo_obj), method = "bray")
 
-#temp <- unclass(clr(otu_table(phylo_obj)))
-#otu_table(phylo_obj) <- otu_table(temp, taxa_are_rows = F)
+clr_tax <- unclass(clr(as(otu_table(phylo_obj), "matrix")))
 
-gunifrac_dist <- MiSPU::GUniFrac(otu.tab = otu_table(phylo_obj), tree = phy_tree(phylo_obj), alpha = 0.5)$GUniF[,,1]
-bray_dist <- vegdist(otu_table(phylo_obj), method = "bray")
-manhattan_dist <- stats::dist(met, method = "manhattan")
-
-plot(as.matrix(bray_dist), as.matrix(manhattan_dist))
-abline(h = quantile(as.matrix(manhattan_dist), 0.25), col = "red")
-abline(h = quantile(as.matrix(manhattan_dist), 0.75), col = "red")
-
-length(gunifrac_dist[lower.tri(gunifrac_dist)])
+tax_euclid_dist <- stats::dist(clr_tax, method = "euclidean")
+tax_manhattan_dist <- stats::dist(clr_tax, method = "manhattan")
+met_manhattan_dist <- stats::dist(met, method = "manhattan")
+met_euclid_dist <- stats::dist(met, method = "euclidean")
 
 
+generate_pair_plot <- function(dist_tax, dist_met, rank, xlab, ylab){
+  dist_tax <- as.matrix(dist_tax)
+  dist_met <- as.matrix(dist_met)
+  dist_tax[lower.tri(dist_tax)] <- 0
+  dist_met[lower.tri(dist_met)] <- 0
+  dist_tax <- melt(dist_tax) %>% filter(value > 0)
+  dist_met <- melt(dist_met) %>% filter(value > 0)
+  if (rank == T){
+    dist_tax$value <- rank(dist_tax$value)
+    xlab <- paste("Ranked", xlab, "distance")
+  } else {
+    xlab <- paste(xlab, "Distance")
+  }
+  ylab <- paste(ylab, "Distance")
+  plot_dat <- data.frame(cbind(dist_tax$value, dist_met$value))
+  colnames(plot_dat) <- c("tax", "met")
+  plt <- ggplot(plot_dat, aes(x = tax, y = met)) + 
+    stat_binhex(bins = 80) + 
+    geom_hline(yintercept = quantile(dist_met$value, 0.5), colour ="red") + 
+    labs(x = xlab, y = ylab) 
+    
+  return(plt)
+}
+
+(p <- generate_pair_plot(tax_gunifrac_dist, met_manhattan_dist, rank = T, xlab = "gUnifrac", ylab = "Manhattan"))
+ggsave(plot = p, filename = "./docs/distance_comparison.pdf", device = "pdf")
 
 
 

@@ -31,20 +31,19 @@ nmr_binned <- unclass(acomp(nmr_binned)) # normalize to composition format
 
 phylo_obj <- phyloseq(otu_table(tax, taxa_are_rows = F),
                       tax_table(key))
-
+otu_table(phylo_obj) <- otu_table(phylo_obj) + 1
 phylo_obj <- tax_glom(phylo_obj, taxrank = "Genus")
 phylo_obj <- prune_taxa(taxa_sums(phylo_obj) > 0, phylo_obj)
 
 tax <- as(otu_table(phylo_obj), "matrix")
 
-saveRDS(list(tax = tax, met = met),file = "./data/raw_data.rds")
-tax <- unclass(acomp(tax))
-tax[tax == 0] <- 1
+#saveRDS(list(tax = tax, met = met),file = "./data/raw_data.rds")
 
+tax <- unclass(acomp(tax))
 tax <- unclass(compositions::clr(tax))
 
 untar <- list(tax = tax, met = nmr_binned)
 tar <- list(tax = tax, met = met)
 
-saveRDS(untar, "untarNMR_clr_tax.rds")
-saveRDS(tar, "tarNMR_clr_tax.rds")
+saveRDS(untar, "12M_untarNMR_clr_tax.rds")
+saveRDS(tar, "12M_tarNMR_clr_tax.rds")

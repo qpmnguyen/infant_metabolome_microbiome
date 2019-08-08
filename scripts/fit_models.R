@@ -63,7 +63,7 @@ results <- foreach(i = 1:ncol(met)) %dopar% {
 print("End loop...")
 # save files  
 filename <- paste0("./",opt$label,"_", opt$method, "_", opt$datatype, ".rds")
-saveRDS(result, file = filename)
+saveRDS(results, file = filename)
 
 
 

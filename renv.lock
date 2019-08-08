@@ -352,6 +352,16 @@
       "RemoteSha": "0.19-3",
       "Hash": "a286fe19601803ce6d2cb5f35e07629c"
     },
+    "coda.base": {
+      "Package": "coda.base",
+      "Version": "0.2.1",
+      "Source": "CRAN",
+      "RemoteType": "standard",
+      "RemoteRef": "coda.base",
+      "RemoteRepos": "https://cran.rstudio.com",
+      "RemoteSha": "0.2.1",
+      "Hash": "ef9565225f14f18ab201b25d4a659a5a"
+    },
     "codetools": {
       "Package": "codetools",
       "Version": "0.2-16",

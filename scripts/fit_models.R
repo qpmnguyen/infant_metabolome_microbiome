@@ -14,7 +14,6 @@ option_list <- list(
   make_option("--label", type = "character", help = "If not null simulations input this to have proper names", 
               default = NULL),
   make_option("--datatype", type = "character", help = "NMR data type which determines different transformations, can be 'concentrations' or 'binned'"),
-  make_option("--distance", help = "Distance file for SICS", default = NULL),
   make_option("--ncores", help = "Number of cores")
 )
 
@@ -37,34 +36,25 @@ out.folds <- opt$outfolds
 if (is.null(ncol(met)) == T){
   met <- as.matrix(met)
 }
-
-# deal with missing distance 
-if (!is.null(opt$distance)){
-  dist <- readRDS(file = opt$distance)
-} else {
-  dist <- NULL
-}
-
 # scale and center taxonomic tables  
 tax <- scale(tax, center = T, scale = T)
 
 print("Starting loop...")
 # main dopar loop
 registerDoParallel(cores = opt$ncores)
-results <- foreach(i = 1:ncol(met)) %dopar% {
+output <- foreach(i = 1:ncol(met)) %dopar% {
     mod <- modelfit.fn(response = met[,i], predictor = tax, model = opt$method, 
-                       resp_type = opt$datatype, distance = dist, 
-                       in.folds = opt$infolds, out.folds = opt$outfolds)
-    cat(paste("Loop", i, "Finished..."), file=stdout())
+                       resp_type = opt$datatype, distance = NULL, 
+                       in.folds = in.folds, out.folds = out.folds)
+    print(paste("Loop", i, "Finished..."))
     mod
     
 }
 
 print("End loop...")
 # save files  
-filename <- paste0("./",opt$label,"_", opt$method, "_", opt$datatype, ".rds")
-saveRDS(results, file = filename)
-
+filename <- paste0(opt$label,"_", opt$method, "_", opt$datatype, ".rds")
+saveRDS(output, file = filename)
 
 
 

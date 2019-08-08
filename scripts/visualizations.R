@@ -1,3 +1,6 @@
+# This script is for producing basic visualizations such as relative abundances and ordination 
+# 
+
 library(dplyr)
 library(ggplot2)
 library(phyloseq)
@@ -10,6 +13,7 @@ library(MiSPU)
 library(ggfortify)
 library(vegan)
 library(ade4)
+library(RMTstat)
 source("./scripts/utils.R")
 
 # relative abundance plots 
@@ -43,19 +47,37 @@ combine_plot <- grid.arrange(p1, p2, nrow = 2, ncol = 1)
 ggsave(combine_plot, device = "pdf", filename = "./docs/6W_family_metabolite_RA.pdf")
 ggsave(combine_plot, device = "png", filename = "./docs/6W_family_metabolite_RA.png", dpi = "retina")
 # ordiation plots 
-tax <- data$tax.6W
+
+rmt.test <- function(prcomp.output){
+  eigenvals <- (prcomp.output$sdev)^2
+  n.eigenvec <- nrow(prcomp.output$rotation)
+  sample.size <- nrow(prcomp.output$x)
+  tws <- c()
+  pvals <- c()
+  for (i in 1:length(eigenvals)){
+    eval <- eigenvals[i] #selecting the eigenvalue
+    pdim <- n.eigenvec - i + 1 #number of dimensions of the wishart matrix
+    par <- WishartMaxPar(ndf = sample.size, pdim = pdim)
+    tws[i] <- (eval - par$centering)/par$scaling
+    pvals[i] <- pgamma(tws[i] + 9.84801, shape=46.446, scale=0.186054, lower.tail = F)
+  }
+  result = list(tws = tws, pvals = pvals)
+  return(result)
+}
+
+tax <- data$tax.12M
 key <- data$tax.key
 key <- key_processing(key, type = "NA")
-tree <- read_tree(treefile = "./data/6W_tree.tre")
+tree <- read_tree(treefile = "./data/12M_tree.tre")
 tree <- midpoint.root(tree)
-met <- data$metabo.6W
+met <- data$metabo.12M
 phylo_obj <- phyloseq(otu_table(tax, taxa_are_rows = F),
                       tax_table(key), 
                       phy_tree(tree))
 
-phylo_obj <- tax_glom(phylo_obj, taxrank = "Genus")
+#phylo_obj <- tax_glom(phylo_obj, taxrank = "Genus")
 phylo_obj <- prune_taxa(taxa_sums(phylo_obj) > 0, phylo_obj)
-otu_table(phylo_obj) <- otu_table(phylo_obj) + 1 # pseudocount
+#otu_table(phylo_obj) <- otu_table(phylo_obj) + 1 # pseudocount
 phylo_obj <- transform_sample_counts(phylo_obj, function(x) x/sum(x))
 
 tax_aich_dist <- coda.base::dist(otu_table(phylo_obj), method = "aitchison")
@@ -66,9 +88,18 @@ clr_tax <- unclass(clr(as(otu_table(phylo_obj), "matrix")))
 
 tax_euclid_dist <- stats::dist(clr_tax, method = "euclidean")
 tax_manhattan_dist <- stats::dist(clr_tax, method = "manhattan")
+
+
+princomp <- prcomp(met,center = T, scale = T)
+rmt_test <- rmt.test(princomp)
+#sig_idx <- which(princomp$sdev^2 >= 1)
+sig_idx <- which(rmt_test$pvals < 0.05)
+n_PCs <- princomp$x[,sig_idx]
+
+met_PCs_manhattan_dist <- stats::dist(n_PCs, method = "manhattan")
+met_PCs_euclidean_dist <- stats::dist(n_PCs, method = "euclidean")
 met_manhattan_dist <- stats::dist(met, method = "manhattan")
 met_euclid_dist <- stats::dist(met, method = "euclidean")
-
 
 generate_pair_plot <- function(dist_tax, dist_met, rank, xlab, ylab){
   dist_tax <- as.matrix(dist_tax)
@@ -87,15 +118,26 @@ generate_pair_plot <- function(dist_tax, dist_met, rank, xlab, ylab){
   plot_dat <- data.frame(cbind(dist_tax$value, dist_met$value))
   colnames(plot_dat) <- c("tax", "met")
   plt <- ggplot(plot_dat, aes(x = tax, y = met)) + 
+    geom_point() + 
     stat_binhex(bins = 80) + 
     geom_hline(yintercept = quantile(dist_met$value, 0.5), colour ="red") + 
-    labs(x = xlab, y = ylab) 
+    labs(x = xlab, y = ylab) + theme_linedraw()
     
   return(plt)
 }
 
-(p <- generate_pair_plot(tax_gunifrac_dist, met_manhattan_dist, rank = T, xlab = "gUnifrac", ylab = "Manhattan"))
-ggsave(plot = p, filename = "./docs/distance_comparison.pdf", device = "pdf")
+(p <- generate_pair_plot(tax_gunifrac_dist, met_PCs_manhattan_dist, rank = F, xlab = "gUnifrac", ylab = "Manhattan"))
+ggsave(plot = p, filename = "./docs/distance_unranked_comparison.png", device = "png", dpi = "retina")
 
-
-
+# Comparing ordinations  
+tax_ord <- metaMDS(comm = tax_gunifrac_dist, try = 50, engine = "isoMDS")
+met_ord <- metaMDS(comm = met_PCs_manhattan_dist, try = 50, engine = "isoMDS")
+proc <- procrustes(tax_ord, met_ord, symmetric = T)
+proc_test <- protest(tax_ord, met_ord)
+plot_dat <- data.frame(rbind(proc$Yrot, proc$X))
+plot_dat[,3] <- c(rep("Metabolite",nrow(proc$Yrot)), rep("Taxonomy", nrow(proc$X)))
+(plt <- ggplot(plot_dat, aes(x = NMDS1, y = NMDS2, colour = V3)) + geom_point(size = 2) + scale_color_discrete(name = "Ordination Type") +
+  annotate("text", x = -0.2, y = -0.04, label = paste("Procrustes Sum of Squares:", round(proc_test$ss,4)), color = "red") +
+  annotate("text", x = -0.2, y = -0.05, label = paste("Sig:", proc_test$signif), color = "red") + theme_linedraw())
+  
+ggsave("./docs/procrustes_rot.png", device = "png", plot = plt)

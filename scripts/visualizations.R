@@ -1,5 +1,6 @@
 # This script is for producing basic visualizations such as relative abundances and ordination 
-# 
+# Quang Nguyen
+# Last updated 08/09/19
 
 library(dplyr)
 library(ggplot2)
@@ -100,6 +101,7 @@ met_PCs_manhattan_dist <- stats::dist(n_PCs, method = "manhattan")
 met_PCs_euclidean_dist <- stats::dist(n_PCs, method = "euclidean")
 met_manhattan_dist <- stats::dist(met, method = "manhattan")
 met_euclid_dist <- stats::dist(met, method = "euclidean")
+met_cosine_dist <- stats::dist(met, method = "cosine")
 
 generate_pair_plot <- function(dist_tax, dist_met, rank, xlab, ylab){
   dist_tax <- as.matrix(dist_tax)

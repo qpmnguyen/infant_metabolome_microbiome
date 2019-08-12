@@ -21,13 +21,19 @@ We normalize taxonomic data to proportions by dividing individual counts by samp
 ## Model Fitting and evaluation
 We fit our machine learning models using the `caret` package in `R`. Scaling and centering was performed on the predictor matrix prior to model fitting. We evaluate our models using 10-fold nested cross validation, where within each outer training set we nest a cross-validation procedure for parameter tuning which should prevent overfitting.  
 Models we compared include elastic net (EN), random forest (RF), support vector machines with radial basis function kernel (SVM), sparse partial least squares (SPLS) as well as multivariate extensions of EN, SPLS and RF. These models were chosen based on prelminiary fit, as well as from existing literature.   
-We evaluate our models using four different criterion: Spearman's rho, Root mean squared error (RMSE), Root relative squared error (RRSE) and Predictive R-squared (R2). In order to contextualize our values, we simulated null distributions of our test statistic by permuting both the predictor and outcome matrices using the function `randomizeMatrix` in the package `picante`. The procedure performs permutations while perserving the general structure of the dataset.  
+We evaluate our models using four different criterion: Spearman's rho, Root mean squared error (RMSE), Root relative squared error (RRSE) and Predictive R-squared (R2). In order to contextualize our values, we simulated null distributions of our test statistic by permuting both the predictor and outcome matrices using the function `randomizeMatrix` in the package `picante`. The procedure performs permutations while perserving the general structure of the dataset. So far, we've only performed null simulations for concentration-fitted data of certain metabolites.  
+
+```{r, fig.cap="**Figure 1.** RMSE and R-squared scores averaged across folds then across all metabolites for each model"}
+knitr::include_graphics("model_specific_comparision.png")
+```
+The graph above shows that the results for random forest models are 
 
 ## Additional graphics  
 ### Taxa and metabolite relative abundances   
 ```{r, fig.cap="**Figure 1.** Relative abundances of bacterial families (top panel) and targeted metabolites (bottom panel) for 6W samples"}
 knitr::include_graphics("./6W_family_metabolite_RA.png")
 ```
+
 ```{r, include=TRUE, fig.cap="**Figure 2.** Relative abundances of bacterial families (top panel) and targeted metabolites (bottom panel) for 12M samples"}
 knitr::include_graphics("./12M_family_metabolite_RA.png")
 ```

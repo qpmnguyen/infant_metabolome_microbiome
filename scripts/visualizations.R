@@ -123,13 +123,13 @@ generate_pair_plot <- function(dist_tax, dist_met, rank, xlab, ylab){
     geom_point() + 
     stat_binhex(bins = 80) + 
     geom_hline(yintercept = quantile(dist_met$value, 0.5), colour ="red") + 
-    labs(x = xlab, y = ylab) + theme_linedraw()
+    labs(x = xlab, y = ylab) + theme_bw()
     
   return(plt)
 }
 
-(p <- generate_pair_plot(tax_gunifrac_dist, met_PCs_manhattan_dist, rank = F, xlab = "gUnifrac", ylab = "Manhattan"))
-ggsave(plot = p, filename = "./docs/distance_unranked_comparison.png", device = "png", dpi = "retina")
+(p <- generate_pair_plot(tax_gunifrac_dist, met_PCs_manhattan_dist, rank = F, xlab = "Taxonomic", ylab = "Metabolite"))
+ggsave(plot = p, filename = "./docs/distance_unranked_comparison.png", device = "png", width = 8, height = 5, units = "in")
 
 # Comparing ordinations  
 tax_ord <- metaMDS(comm = tax_gunifrac_dist, try = 50, engine = "isoMDS")

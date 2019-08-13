@@ -18,8 +18,8 @@ library(RMTstat)
 source("./scripts/utils.R")
 
 # relative abundance plots 
-tar <- readRDS(file = './data/tarNMR_clr_tax.rds')
-untar <- readRDS(file = "./data/untarNMR_clr_tax.rds")
+#tar <- readRDS(file = './data/tarNMR_clr_tax.rds')
+#untar <- readRDS(file = "./data/untarNMR_clr_tax.rds")
 data <- load_main(file = "./data/data_directory.csv")
 tax <- data$tax.6W
 key <- data$tax.key
@@ -66,12 +66,14 @@ rmt.test <- function(prcomp.output){
   return(result)
 }
 
-tax <- data$tax.12M
+tax <- data$tax.6W
 key <- data$tax.key
 key <- key_processing(key, type = "NA")
-tree <- read_tree(treefile = "./data/12M_tree.tre")
+tree <- read_tree(treefile = "./data/6W_tree.tre")
 tree <- midpoint.root(tree)
-met <- data$metabo.12M
+met <- data$metabo.6W
+met_untar <-readRDS(file = "./data/6W_untarNMR_clr_tax.rds")$met
+
 phylo_obj <- phyloseq(otu_table(tax, taxa_are_rows = F),
                       tax_table(key), 
                       phy_tree(tree))
@@ -81,9 +83,11 @@ phylo_obj <- prune_taxa(taxa_sums(phylo_obj) > 0, phylo_obj)
 #otu_table(phylo_obj) <- otu_table(phylo_obj) + 1 # pseudocount
 phylo_obj <- transform_sample_counts(phylo_obj, function(x) x/sum(x))
 
-tax_aich_dist <- coda.base::dist(otu_table(phylo_obj), method = "aitchison")
-tax_gunifrac_dist <- MiSPU::GUniFrac(otu.tab = otu_table(phylo_obj), tree = phy_tree(phylo_obj), alpha = 0.5)$GUniF[,,1]
-tax_bray_dist <- vegdist(otu_table(phylo_obj), method = "bray")
+tax <- as(otu_table(phylo_obj), "matrix")
+
+tax_aich_dist <- coda.base::dist(tax, method = "aitchison")
+tax_gunifrac_dist <- MiSPU::GUniFrac(otu.tab = tax, tree = phy_tree(phylo_obj), alpha = 0.5)$GUniF[,,1]
+tax_bray_dist <- vegdist(tax, method = "bray")
 
 clr_tax <- unclass(clr(as(otu_table(phylo_obj), "matrix")))
 
@@ -102,6 +106,8 @@ met_PCs_euclidean_dist <- stats::dist(n_PCs, method = "euclidean")
 met_manhattan_dist <- stats::dist(met, method = "manhattan")
 met_euclid_dist <- stats::dist(met, method = "euclidean")
 met_cosine_dist <- stats::dist(met, method = "cosine")
+untarmet_aich_dist <- coda.base::dist(met_untar, method = "aitchison")
+untarmet_manhattahn <- dist(asin(sqrt(met_untar)),  method = "manhattan")
 
 generate_pair_plot <- function(dist_tax, dist_met, rank, xlab, ylab){
   dist_tax <- as.matrix(dist_tax)
@@ -128,18 +134,30 @@ generate_pair_plot <- function(dist_tax, dist_met, rank, xlab, ylab){
   return(plt)
 }
 
-(p <- generate_pair_plot(tax_gunifrac_dist, met_PCs_manhattan_dist, rank = F, xlab = "Taxonomic", ylab = "Metabolite"))
-ggsave(plot = p, filename = "./docs/distance_unranked_comparison.png", device = "png", width = 8, height = 5, units = "in")
+(p <- generate_pair_plot(tax_gunifrac_dist, met_PCs_manhattan_dist, rank = F, xlab = "Taxonomic", ylab = "Metabolite") + labs(title = "Targeted"))
+(p2 <- generate_pair_plot(tax_gunifrac_dist, untarmet_manhattahn, rank = F, xlab = "Taxonomic", ylab = "Metabolite") + labs(title = "Untargeted"))
+
+(joined <- grid.arrange(grobs = list(p = p, p2 = p2), nrow = 1, col = 2))
+ggsave(plot = joined, filename = "./docs/distance_unranked_comparison_12M.png", device = "png", width = 8, height = 5, units = "in")
 
 # Comparing ordinations  
 tax_ord <- metaMDS(comm = tax_gunifrac_dist, try = 50, engine = "isoMDS")
-met_ord <- metaMDS(comm = met_PCs_manhattan_dist, try = 50, engine = "isoMDS")
-proc <- procrustes(tax_ord, met_ord, symmetric = T)
+met_ord <- metaMDS(comm = as.matrix(met_PCs_manhattan_dist), try = 50, engine = "isoMDS")
+met_ord_2 <- metaMDS(comm = as.matrix(untarmet_manhattahn), try = 50, engine = "isoMDS")
+
 proc_test <- protest(tax_ord, met_ord)
-plot_dat <- data.frame(rbind(proc$Yrot, proc$X))
-plot_dat[,3] <- c(rep("Metabolite",nrow(proc$Yrot)), rep("Taxonomy", nrow(proc$X)))
+proc_test <- protest(tax_ord, met_ord_2)
+
+(mantel_test <- mantel(tax_gunifrac_dist, untarmet_manhattahn))
+(mantel_test <- mantel(tax_gunifrac_dist, met_PCs_manhattan_dist))
+plot_dat <- data.frame(rbind(proc_test$Yrot, proc_test$X))
+plot_dat[,3] <- c(rep("Metabolite",nrow(proc_test$Yrot)), rep("Taxonomy", nrow(proc_test$X)))
 (plt <- ggplot(plot_dat, aes(x = NMDS1, y = NMDS2, colour = V3)) + geom_point(size = 2) + scale_color_discrete(name = "Ordination Type") +
-  annotate("text", x = -0.2, y = -0.04, label = paste("Procrustes Sum of Squares:", round(proc_test$ss,4)), color = "red") +
-  annotate("text", x = -0.2, y = -0.05, label = paste("Sig:", proc_test$signif), color = "red") + theme_linedraw())
-  
-ggsave("./docs/procrustes_rot.png", device = "png", plot = plt)
+    labs(title = "Targeted") + 
+  annotate("text", x = 0.6, y = -0.04, label = paste("Procrustes SS:", round(proc_test$ss,4)), color = "red") +
+  annotate("text", x = 0.6, y = -0.05, label = paste("Sig:", proc_test$signif), color = "red") + theme_bw())
+
+plot <- grid.arrange(plt, plt2, nrow = 1, ncol = 2)
+
+
+ggsave("./docs/6W_procrustes_tar_untar.png", device = "png", plot = plot, units = "in", width = 15, height = 5)

@@ -684,6 +684,16 @@
       "RemoteSha": "3.2.0",
       "Hash": "e3b95a7458944efa0ebbb903bcdbe168"
     },
+    "ggthemes": {
+      "Package": "ggthemes",
+      "Version": "4.2.0",
+      "Source": "CRAN",
+      "RemoteType": "standard",
+      "RemoteRef": "ggthemes",
+      "RemoteRepos": "https://cran.rstudio.com",
+      "RemoteSha": "4.2.0",
+      "Hash": "bc3e11207ac8dc4df1532663c4cf6a7a"
+    },
     "gh": {
       "Package": "gh",
       "Version": "1.0.1",
@@ -831,6 +841,16 @@
       "RemoteRepos": "https://cran.rstudio.com",
       "RemoteSha": "1.2.4.1",
       "Hash": "6eb7a604bc33c66dac0611b7ce75ac69"
+    },
+    "impute": {
+      "Package": "impute",
+      "Version": "1.58.0",
+      "Source": "Bioconductor",
+      "RemoteType": "standard",
+      "RemoteRef": "impute",
+      "RemoteRepos": "https://bioconductor.org/packages/3.9/bioc",
+      "RemoteSha": "1.58.0",
+      "Hash": "d3efbb1b679404f25eaf3d9d149038fa"
     },
     "ini": {
       "Package": "ini",
@@ -1320,6 +1340,16 @@
       "RemoteSha": "1.8.4",
       "Hash": "37dd0f3aadee2ac99e47168f4bffddb7"
     },
+    "PMA": {
+      "Package": "PMA",
+      "Version": "1.1",
+      "Source": "Bioconductor",
+      "RemoteType": "standard",
+      "RemoteRef": "PMA",
+      "RemoteRepos": "https://cran.rstudio.com",
+      "RemoteSha": "1.1",
+      "Hash": "c8a46d3a5f7b95b5f50860e3d870dbe9"
+    },
     "praise": {
       "Package": "praise",
       "Version": "1.0.0",
@@ -1409,6 +1439,16 @@
       "Version": "2.4.0",
       "Source": "CRAN",
       "Hash": "92b50d943a7c76c67918c1e1beb68627"
+    },
+    "rafalib": {
+      "Package": "rafalib",
+      "Version": "1.0.0",
+      "Source": "CRAN",
+      "RemoteType": "standard",
+      "RemoteRef": "rafalib",
+      "RemoteRepos": "https://cran.rstudio.com",
+      "RemoteSha": "1.0.0",
+      "Hash": "8a422679c235828c83c5b15889ed3375"
     },
     "rcmdcheck": {
       "Package": "rcmdcheck",

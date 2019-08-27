@@ -45,7 +45,7 @@ key <- data$tax.key
 key <- key_processing(key, type = "NA")
 
 
-generate_ordination_plots <- function(time, method, type, data){
+generate_ordination_plots <- function(time, method, type, data, save){
   # processing taxonomic data 
   tax <- data[paste0("tax.",time)][[1]]
   tree <- read_tree(treefile = paste0("./data/", time, "_tree.tre"))
@@ -91,17 +91,26 @@ generate_ordination_plots <- function(time, method, type, data){
     (plt <- ggscatter(plot_dat, x= "NMDS1", y = "NMDS2", 
               color = "Ordination",
               palette = "jco", 
-              size = 1, 
+              size = 3, 
+              star.plot.lwd = 1,
               ellipse = T,
-              ellipse.type = "convex",
-              star.plot = T, mean.point = T, mean.point.size = 3,
+              ellipse.type = "t",
+              star.plot = F, mean.point = F,
               repel = T))
-    plt <- ggpar(plt,subtitle = paste("SoS:", round(proc_test$ss,4), "; Sig:", round(proc_test$signif,4)))
+    plt <- ggpar(plt,subtitle = paste("Procrustes SoS:", round(proc_test$ss,4), "; Sig:", round(proc_test$signif,4)))
     name <- paste0(time, "_", method, "_protest_ord_plot.png")
-    ggsave(filename = name, plot = plt, device = "png", width = 15, height = 10, units = "in")
+    if(save == T){
+      ggsave(filename = name, plot = plt, device = "png", width = 15, height = 10, units = "in")
+    } else {
+      return(plt)
+    }
   }
   # Protest
 }
 
+grid <- expand.grid(c("12M", "6W"), c("tar", "untar"))
+i = 2
+for (i in 1:nrow(grid)){
+  generate_ordination_plots(time = grid$Var1[i], method = grid$Var2[i], data = data, type = "rot", save = T)
+}
 
-generate_ordination_plots(time = "12M", method = "tar", type = "rot", data = data)

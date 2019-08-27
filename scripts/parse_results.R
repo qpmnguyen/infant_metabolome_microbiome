@@ -8,6 +8,7 @@ library(kableExtra)
 library(ggthemes)
 library(gtable)
 library(grid)
+library(ggpubr)
 parse_results <- function(method, time, data_type){
   directory <- paste0("./data/", method, "/", time, "_", data_type, "_clr_tax/")
   files <- list.files(directory)
@@ -43,6 +44,22 @@ parse_results <- function(method, time, data_type){
   return(list(RMSE = RMSE, RRSE = RRSE, Correlation = Corr, R2 = R2))
 }
 
+generate_mean_barplot_2 <- function(df, type, datatype){
+  null <- readRDS(file = "./data/null_permutation.rds")
+  null <- do.call(rbind,null)
+  colnames(null) <- c("RRSE", "RMSE", "Correlation", "R2")
+  df <- melt(df) %>% group_by(Var2) %>% summarise(avg = mean(value, trim = 0.1))
+  plt <- ggbarplot(data = df, x = "Var2", y = "avg", fill = "steelblue", sort.val = "asc") 
+  plt <- ggpar(plt, xlab = "Metabolite", ylab = "10% Trimmed Mean", main = type, orientation = "horiz")
+  if (datatype == "untar"){
+    plt <- plt + theme(axis.text.y = element_blank(), axis.ticks.y = element_blank())
+  } else if (datatype == "tar"){
+    plt <- plt + geom_hline(yintercept = quantile(probs=0.95, x = null[,type]), color = "coral") + 
+      geom_hline(yintercept = quantile(probs=0.05, x = null[,type]), color = "coral")
+  }
+  return(plt)
+}
+
 generate_mean_barplot <- function(df, ylab, xlab, type, datatype = NULL){
   null <- readRDS(file = "./data/null_permutation.rds")
   null <- do.call(rbind, null)
@@ -60,14 +77,16 @@ generate_mean_barplot <- function(df, ylab, xlab, type, datatype = NULL){
   return(plt)
 }
 
-results <- parse_results("rf", "12M", "untar") 
+results <- parse_results("rf", "12M", "tar") 
+results <- results[-c(1,4)]
 
 # making joint plots  
 plots <- map2(names(results), results, function(.x, .y){
-  p <- generate_mean_barplot(.y, ylab = "Trimmed 10% Mean", xlab = "Metabolites", type = .x, datatype = "untar")
+  p <- generate_mean_barplot_2(.y, type = .x, datatype = "tar")
   return(p)
 })
 
+plots
 
 joined <- grid.arrange(grobs = plots, ncol = 2, nrow =2)
 #ggsave(filename = "./docs/12M_rf_untarNMR.png", joined, device = "png", width = 15, height = 15, units = "in")
@@ -106,22 +125,6 @@ plt <- ggplot(comb_filt, aes(x = L1, y = value)) + geom_boxplot(aes(fill = L1)) 
   facet_grid(rows = vars(time), cols = vars(data_type)) + coord_cartesian(ylim = c(-1,1.5)) + labs(y = "Value", x = "Evaluation Measure") +
   theme(legend.position = "None")
 #ggsave(plot = plt, filename = "./docs/comparison_boxplots.png", device = "png", width = 10, height = 9, units = "in")
-plt
-# making maximum correlation table 
-dat <- combined %>% group_by(time, data_type) %>% filter(L1 == "Correlation") %>% summarise(max = max(value), max_metab = Metabolite[which.max(value)])
-
-table <- do.call(rbind,apply(dat, 1, function(x){
-  combined %>% group_by(time, data_type, L1) %>% filter(time == x[1], data_type == x[2], Metabolite == x[4])
-}))
-
-table$data_type[table$data_type == "tar"] <- "Targeted"
-table$data_type[table$data_type == "untar"] <- "Untargeted"
-
-table <- table[,c(4,5,3,2,1)]
-colnames(table) <- c("Time", "Metabolite Type", "Metabolite Id", "Evaluation Metric", "Value")
-
-
-kable(table, "html") %>% kable_styling("striped") %>% save_kable("./docs/test.png")
 
 
 # generating pair plots of all folds

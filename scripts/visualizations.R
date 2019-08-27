@@ -79,8 +79,8 @@ generate_ordination_plots <- function(time, method, type, data, save){
     met_plt <- ggpar(met_plt, title = "Metabolites")
     tax_plt <- ggscatter(data = tax_pts, x = "NMDS1", y = "NMDS2", color = "steelblue", ellipse = T, ellipse.type = "t", star.plot = T, mean.point = T, 
                          ellipse.alpha = 0)
-    tax_plt <- ggpar(met_plt, title = "Taxonomy")
-    grid <- grid.arrange(met_plt, tax_plt, nrow = 1, ncol = 2)
+    tax_plt <- ggpar(tax_plt, title = "Taxonomy")
+    plt <- grid.arrange(met_plt, tax_plt, nrow = 1, ncol = 2)
     ggsave(filename = paste0(time, "_", method, "_single_ordination.png"), plot = plt, width = 15, height = 10, units = "in")
     
   } else if (type == "rot") {
@@ -109,8 +109,16 @@ generate_ordination_plots <- function(time, method, type, data, save){
 }
 
 grid <- expand.grid(c("12M", "6W"), c("tar", "untar"))
-i = 2
+plot_list <- list()
 for (i in 1:nrow(grid)){
-  generate_ordination_plots(time = grid$Var1[i], method = grid$Var2[i], data = data, type = "rot", save = T)
+  plot_list[[i]] <- generate_ordination_plots(time = grid$Var1[i], method = grid$Var2[i], data = data, type = "single", save = T)
 }
+
+for (i in 1:nrow(grid)){
+  plot_list[[i]] <- ggpar(plot_list[[i]], title = paste(grid$Var1[i], grid$Var2[i]))
+}
+
+ggsave(plot = grid.arrange(plot_list[[1]], plot_list[[3]], ncol = 2), filename = "./docs/12Mprocrustes_tar_untar.png", device = "png", width = 15, height = 10)
+ggsave(plot = grid.arrange(plot_list[[2]], plot_list[[4]], ncol = 2), filename = "./docs/6Wprocrustes_tar_untar.png", device = "png", width = 15, height = 10)
+
 

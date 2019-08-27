@@ -35,10 +35,11 @@ generate_postCCA_correlation_plots <- function(time, method, level){
   cols.1 <- palette(c('coral2','steelblue2'))[as.fumeric(dir.1)]
   cols.2 <- palette(c('coral2','steelblue2'))[as.fumeric(dir.2)]
   name <- paste0(time, "_", method, "_CCA_heatmap.png")
+  cca$cors
   png(filename = name, width = 20, height = 15, units = "in", res = 300)
   heatmap.2(correlation, col=brewer.pal(11,"RdBu"),
             RowSideColors = cols.1,
-            ColSideColors = cols.2, trace = "none", key = FALSE)
+            ColSideColors = cols.2, trace = "none", key = TRUE, main = paste(time, method, "CCA Correlation:", round(cca$cors, 3)))
   dev.off()
 }
 

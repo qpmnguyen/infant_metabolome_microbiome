@@ -49,3 +49,12 @@ data/
 
 # software files 
 software/
+
+# old scripts 
+archive/
+
+# vs code stuff 
+.vscode/
+
+# snakemake logs
+.snakemake/

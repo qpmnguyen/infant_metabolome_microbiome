@@ -1,3 +1,5 @@
+# using rstudio api to automatically initialize an R project 
+
 # installing renv 
 if (!requireNamespace("renv")){
   if (!requireNamespace("devtools")){

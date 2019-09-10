@@ -46,3 +46,6 @@ packrat/src/*
 
 # data files 
 data/
+
+# software files 
+software/

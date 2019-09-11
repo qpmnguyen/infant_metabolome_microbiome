@@ -56,6 +56,11 @@ archive/
 # vs code stuff 
 .vscode/
 
-# snakemake logs
+# snakemake logs and outputs 
 .snakemake/
 logs/
+figures/
+reports/
+simulation/
+temp/
+results/

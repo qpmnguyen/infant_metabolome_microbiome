@@ -5,7 +5,8 @@ METHODS = ["rf", "svm", "enet", "spls"]
 
 rule all:
     input:
-        expand('data/{tax}_{time}_{met}.rds', tax = TAX, time = TIME, met = MET)
+        processed = expand('data/processed/{tax}_{time}_{met}_processed.rds', tax = TAX, time = TIME, met = MET)
+
 
 rule data_retrieval:
     input:
@@ -13,43 +14,28 @@ rule data_retrieval:
         script = "R/data_retrieval.R",
         fasttree_dir = "../software/"
     output: 
-        out_file = "data/{tax}_{time}_{met}.rds"
+        out_file = "data/raw/{tax}_{time}_{met}.rds"
     shell:
         "RScript {input.script} --input {input.dir_file} --output {output.out_file} --time {wildcards.time} --metab_type {wildcards.met} --tax_type {wildcards.tax} --fasttree_dir {input.fasttree_dir}"  
 
-#rule prediction_processing:
-#    input:
-#        "data/{tax}_{time}_{met}.rds"
-#    output:
-#        "processed/{tax}_{time}_{met}_processed.rds"
-#    shell:
-#        "echo {output}"
+rule prediction_processing:
+    input:
+        data = "data/raw/{tax}_{time}_{met}.rds",
+        script = "R/prediction_processing.R"
+    output:
+        out_file = "data/processed/{tax}_{time}_{met}_processed.rds"
+    shell:
+        "RScript {input.script} --input {input.data} --output {output.out_file} --metab.type {wildcards.met}"
 
-# rule exploratory_processing:
-#    input: 
-#        "data/{tax}_{time}_{met}.rds"
-#    output:
-#        "processed/{tax}_{time}_{met}_ordination_processed.rds"
-#    shell:
-#       "echo {output}"
+rule ordination_analyses:
+    input: 
+        data = "data/raw/{tax}_{time}_{met}.rds",
+        script = "R/ordination_analyses.R"
+    output:
+        out_file = "analyses/{tax}_{time}_{met}_ordinations.rds"
+    shell:
+       "echo {output.out_file}"
 
-#rule fitting_prediction_models: 
-#    input:
-#    output: 
-
-#rule back_transformation:
-
-#rule calculate_performance_metrics:
-
-#rule generate_prediction_result_figures:
-
-#rule generate_ordination_figures:
-
-#rule generate_correlation_figures:
-
-#rule generate_report:
-
-#rule general_plotting:
 
 
 

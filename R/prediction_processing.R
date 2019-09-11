@@ -29,9 +29,13 @@ tax <- unclass(clr(tax)) # centerd log_ratio transformation
 
 # processing metabolomics data 
 met <- as(sample_data(data), "matrix")
+control_idx <- grep("DSS", colnames(met))
+met <- met[,-c(1,control_idx)]
+
 if (opt$metab_type == "tar"){
     met <- log(met + 1) # log x+1 transformation
 } else if (opt$metab_type == "untar"){
+    met <- met
     met <- unclass(acomp(met)) # renormalize to relative abundances
     met <- asin(sqrt(met)) # arcsine square root transformation 
 }

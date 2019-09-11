@@ -6,6 +6,7 @@ library(purrr)
 library(dplyr)
 library(phyloseq)
 library(optparse)
+library(ape)
 
 option_list <- list(
   make_option("--input", help = "Input file for data loading"),
@@ -77,20 +78,23 @@ load_supp <- function(dir_file, supp_type = c("treeall", "taxallkey")){
   for(i in supp_type){
     if (i == "treeall"){
       dir.create("./temp/", showWarnings = F)
-      if (file.exists("./temp/full_tree.tre" ==)){
+      if (file.exists("./temp/full_tree.tre") == F){ # no tree file can be detected 
         print("There is no tree file here")
-        seqs <- readRDS(file = dir_file[dir_file$X == i,]$directory)
-        names(seqs) <- paste0("SV", 1:length(seqs))
-        alignment <- DECIPHER::AlignSeqs(Biostrings::DNAStringSet(seqs), anchor = NA, verbose = T)
-        phagAlign <- phangorn::phyDat(methods::as(alignment, "matrix"), type = "DNA")
-        phangorn::write.phyDat(phagAlign, file = "./temp/full_alignment.fasta", format = "fasta")
-        command <- paste0(opt$fasttree_dir, " FastTree -gtr -nt ./temp/full_alignment.fasta > ./temp/full_tree.tre")
+        if (file.exists("./temp/full_alignment.fasta") == F){
+          seqs <- readRDS(file = dir_file[dir_file$X == i,]$directory)
+          names(seqs) <- paste0("SV", 1:length(seqs))
+          alignment <- DECIPHER::AlignSeqs(Biostrings::DNAStringSet(seqs), anchor = NA, verbose = T)
+          phagAlign <- phangorn::phyDat(methods::as(alignment, "matrix"), type = "DNA")
+          phangorn::write.phyDat(phagAlign, file = "./temp/full_alignment.fasta", format = "fasta")
+        }
+        command <- paste0(opt$fasttree_dir, "FastTree -gtr -nt ./temp/full_alignment.fasta > ./temp/full_tree.tre")
         print(command)
         system(command)
       }
-      output[[i]] <- ape::read.tree(file = paste0("./temp/full_tree.tre"))
+      output[[i]] <- ape::read.tree(file = "temp/full_tree.tre")
+    } else if (i == "taxallkey"){
+      output[[i]] <- readRDS(file = dir_file[dir_file$X == i,]$directory)
     }
-    output[[i]] <- readRDS(file = dir_file[dir_file$X == i,]$directory)
   }
   return(output)
 }
@@ -99,9 +103,8 @@ load_supp <- function(dir_file, supp_type = c("treeall", "taxallkey")){
 dir_file <- read.csv(file = opt$input, stringsAsFactors = F)
 main_dat <- load_data(dir_file = dir_file, metab_type = opt$metab_type, tax_type = opt$tax_type, time = opt$time)
 supp_dat <- load_supp(dir_file = dir_file)
-
 phylo_obj <- phyloseq(otu_table(main_dat$tax, taxa_are_rows = F), sample_data(main_dat$metab), 
-                      tax_table(supp_dat$taxallkey))
+                      tax_table(supp_dat$taxallkey), phy_tree(supp_dat$treeall))
 
 if (is.null(opt$output) == T){
   dir.create("./data/", showWarnings = FALSE)

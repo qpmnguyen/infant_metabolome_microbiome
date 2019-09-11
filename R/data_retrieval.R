@@ -1,7 +1,6 @@
 # Updated 09/10/19
 # Quang Nguyen
-# Load all data files according requirements and export as phyloseq object 
-# Rscript file generated to be in Snakemake pipeline 
+# This script retrieves all data files data files according requirements and export as phyloseq object 
 
 library(purrr)
 library(dplyr)
@@ -9,8 +8,8 @@ library(phyloseq)
 library(optparse)
 
 option_list <- list(
-  make_option("--input", help = "Input folder for data loading"),
-  make_option("--output", help = "Output folder for data loading"),
+  make_option("--input", help = "Input file for data loading"),
+  make_option("--output", help = "Output file for data loading"),
   make_option("--time", help = "Data time point to extract"),
   make_option("--metab_type", help = "Data type for metabolite data, can be 'tar' or 'untar'"),
   make_option("--tax_type", help = "Data type for taxonomic data, so far only '16S' is supported"),
@@ -38,9 +37,9 @@ load_data <- function(dir_file, time, metab_type, tax_type){
     tax <- readRDS(file = dir_file[dir_file$X == "taxall",]$directory)
   } 
   print("Loading ids...")
-  if(.Platform$OS.type == "unix"){
+  if(Sys.info()['sysname'] == "Darwin"){
     crosswalk_path <- dir_file[dir_file$X == "mac_access",]$directory
-  } else if (.Platform$OS.type == "windows"){
+  } else if (.Platform$OS.type == "windows" | Sys.info['sysname'] == "Linux"){
     crosswalk_path <- dir_file[dir_file$X == "pc_access",]$directory
   }
   # grabbing cross walk ids 
@@ -77,15 +76,19 @@ load_supp <- function(dir_file, supp_type = c("treeall", "taxallkey")){
   output <- list()
   for(i in supp_type){
     if (i == "treeall"){
-      seqs <- readRDS(file = dir_file[dir_file$X == i,]$directory)
-      names(seqs) <- paste0("SV", 1:length(seqs))
-      alignment <- DECIPHER::AlignSeqs(Biostrings::DNAStringSet(seqs), anchor = NA, verbose = T)
-      phagAlign <- phangorn::phyDat(methods::as(alignment, "matrix"), type = "DNA")
-      phangorn::write.phyDat(phagAlign, file = "full_alignment.fasta", format = "fasta")
-      command <- paste0(opt$fasttree_dir, " FastTree -gtr -nt ", opt$input, "/full_alignment.fasta > ", opt$input, "full_tree.tre")
-      print(command)
-      system(command)
-      output[[i]] <- ape::read.tree(file = paste0(opt$input, "full_tree.tre"))
+      dir.create("./temp/", showWarnings = F)
+      if (file.exists("./temp/full_tree.tre" ==)){
+        print("There is no tree file here")
+        seqs <- readRDS(file = dir_file[dir_file$X == i,]$directory)
+        names(seqs) <- paste0("SV", 1:length(seqs))
+        alignment <- DECIPHER::AlignSeqs(Biostrings::DNAStringSet(seqs), anchor = NA, verbose = T)
+        phagAlign <- phangorn::phyDat(methods::as(alignment, "matrix"), type = "DNA")
+        phangorn::write.phyDat(phagAlign, file = "./temp/full_alignment.fasta", format = "fasta")
+        command <- paste0(opt$fasttree_dir, " FastTree -gtr -nt ./temp/full_alignment.fasta > ./temp/full_tree.tre")
+        print(command)
+        system(command)
+      }
+      output[[i]] <- ape::read.tree(file = paste0("./temp/full_tree.tre"))
     }
     output[[i]] <- readRDS(file = dir_file[dir_file$X == i,]$directory)
   }
@@ -93,16 +96,20 @@ load_supp <- function(dir_file, supp_type = c("treeall", "taxallkey")){
 }
 
 #####-----------------------------------------------------------------------------------------------------------------------
-dir_file <- read.csv(file = "./data/data_directory.csv", stringsAsFactors = F)
-
-main_dat <- load_data(dir_file = dir_file, metab_type = metab_type, tax_type = tax_type, time = time)
+dir_file <- read.csv(file = opt$input, stringsAsFactors = F)
+main_dat <- load_data(dir_file = dir_file, metab_type = opt$metab_type, tax_type = opt$tax_type, time = opt$time)
 supp_dat <- load_supp(dir_file = dir_file)
 
 phylo_obj <- phyloseq(otu_table(main_dat$tax, taxa_are_rows = F), sample_data(main_dat$metab), 
                       tax_table(supp_dat$taxallkey))
 
-output_dir <- paste0("./data/", time, "_", tax_type, "_", metab_type, ".rds")
-saveRDS(phylo_obj, file = output_dir)
+if (is.null(opt$output) == T){
+  dir.create("./data/", showWarnings = FALSE)
+  output_dir <- paste0("./data/", time, "_", tax_type, "_", metab_type, ".rds")  
+  saveRDS(phylo_obj, file = output_dir)
+} else {
+  saveRDS(phylo_obj, file = opt$output)
+}
 
 
 

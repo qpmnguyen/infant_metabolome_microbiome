@@ -58,3 +58,4 @@ archive/
 
 # snakemake logs
 .snakemake/
+logs/

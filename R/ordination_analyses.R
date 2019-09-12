@@ -8,7 +8,7 @@ library(phyloseq)
 library(RMTstat)
 library(phytools)
 library(optparse)
-
+library(plyr)
 
 option_list <- list(
   make_option("--input", help = "Input file for data loading"),
@@ -49,7 +49,12 @@ tax <- as(otu_table(data), "matrix")
 tax_dist <- MiSPU::GUniFrac(otu.tab = tax, tree = phy_tree(data), alpha = 0.5)$GUniF[,,1]
 
 # processing the metabolomics data 
-met <- as(sample_data(data), "matrix")
+met <- as(sample_data(data), "matrix") # this procedure turns everything into character
+temp_names <- rownames(met)
+met <- apply(met, 2, as.numeric)
+rownames(met) <- temp_names
+rm(temp_names)
+
 control_idx <- grep("DSS", colnames(met))
 met <- met[,-c(1,control_idx)] # removing some batch information 
 princomp <- prcomp(met,center = T, scale = T) # principal component analyses 
@@ -62,5 +67,7 @@ met_dist <- stats::dist(n_PCs, method = "manhattan") # construct manhattan dista
 tax_ord <- metaMDS(comm = tax_dist, try = 50, engine = "isoMDS")
 met_ord <- metaMDS(comm = as.matrix(met_dist), try = 50, engine = "isoMDS")
 
+results <- list(tax_ord = tax_ord, met_ord = met_ord)
 
+saveRDS(results, file = opt$output)
 

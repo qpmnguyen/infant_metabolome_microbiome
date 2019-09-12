@@ -60,7 +60,6 @@ archive/
 .snakemake/
 logs/
 figures/
-reports/
-simulation/
 temp/
-results/
+reports/
+analyses/

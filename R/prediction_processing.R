@@ -29,6 +29,10 @@ tax <- unclass(clr(tax)) # centerd log_ratio transformation
 
 # processing metabolomics data 
 met <- as(sample_data(data), "matrix")
+temp_names <- rownames(met)
+met <- apply(met, 2, as.numeric)
+rownames(met) <- temp_names
+rm(temp_names)
 control_idx <- grep("DSS", colnames(met))
 met <- met[,-c(1,control_idx)]
 

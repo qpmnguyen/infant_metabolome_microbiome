@@ -1,0 +1,40 @@
+TIME = ["6W", "12M"]
+MET = ["tar", "untar"]
+TAX = ["16S"]
+EXT = ['rds', 'svg']
+
+rule ordination:
+    input:
+        joint_ordinations = expand('figures/ordinations/{tax}/{time}/{met}/joint_protest_ordinations.{ext}', 
+        tax = TAX, time = TIME, met = MET, ext = EXT),
+        met_ordinations = expand("figures/ordinations/{tax}/{time}/{met}/met_ordinations.{ext}", 
+        tax = TAX, time = TIME, met = MET, ext = EXT),
+        tax_ordinations = expand("figures/ordinations/{tax}/{time}/{met}/tax_ordinations.{ext}", 
+        tax = TAX, time = TIME, met = MET, ext = EXT)
+
+rule clean_ordination:
+    shell: 
+        """
+        rm -rf figures/ordinations/
+        rm -rf analyses/ordinations/ 
+        """
+
+rule ordination_analyses:
+    input: 
+        data = "data/raw/{tax}_{time}_{met}.rds",
+        script = "R/ordination_analyses.R"
+    output:
+        out_file = "analyses/{tax}_{time}_{met}_ordinations.rds"
+    shell:
+       "Rscript {input.script} --input {input.data} --output {output.out_file}"
+
+rule ordination_plots: 
+    input: 
+        data = "analyses/{tax}_{time}_{met}_ordinations.rds",
+        script = "R/ordination_plots.R"
+    output:
+        joint_plot = "figures/ordinations/{tax}/{time}/{met}/joint_protest_ordinations.{ext}",
+        met_plot = "figures/ordinations/{tax}/{time}/{met}/met_ordinations.{ext}",
+        tax_plot = "figures/ordinations/{tax}/{time}/{met}/tax_ordinations.{ext}"
+    shell:
+        "Rscript {input.script} --input {input.data} --metab_type {wildcards.met} --time {wildcards.time} --tax {wildcards.tax}"

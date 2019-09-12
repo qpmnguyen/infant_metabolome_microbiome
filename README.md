@@ -5,7 +5,6 @@ This repository hosts reproducible workflow for analyses represented in the manu
 `snakemake` is utilized to produce a reproducible data analyses pipeline with easily visualizable rulegraph and modular pieces that can be cleanly modified. It also allows for automation of figure generation with appropriate data. Due to propriety of data, the file `data_directory.csv`is not shared and as such the first step of the pipeline can be skipped.  
 
 ![Current Data pipeline](./dag.svg)
-<img src="./dag.svg">
 
 The snakemake pipeline will generate the following folders:  
 * `figures\`: Contain all figures of the paper.  

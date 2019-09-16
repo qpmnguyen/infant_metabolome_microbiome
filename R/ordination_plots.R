@@ -21,6 +21,8 @@ data <- readRDS(file = opt$input)
 
 tax_ord <- data$tax_ord
 met_ord <- data$met_ord
+proc_test <- data$proc_test
+mant_test <- data$mant_test 
 
 # Single data ordinations
 met_pts <- as.data.frame(met_ord$points)
@@ -40,7 +42,6 @@ saveRDS(met_plt, file = paste0(output_folder, "met_ordinations.rds"))
 ggsave(filename = paste0(output_folder, "met_ordinations.svg"), plot = met_plt, device = "svg")
     
 # joint data set ordination 
-proc_test <- protest(tax_ord, met_ord)
 plot_dat <- data.frame(rbind(proc_test$Yrot, proc_test$X))
 plot_dat[,3] <- c(rep("Metabolite",nrow(proc_test$Yrot)), rep("Taxonomy", nrow(proc_test$X)))
 colnames(plot_dat) <- c("NMDS1", "NMDS2", "Ordination")

@@ -55,11 +55,12 @@ archive/
 
 # vs code stuff 
 .vscode/
+healthy_infants_robust_metabolome.code-workspace
 
 # snakemake logs and outputs 
 .snakemake/
-logs/
-figures/
-temp/
-reports/
-analyses/
+# logs/
+# figures/
+# temp/
+# reports/
+# analyses/

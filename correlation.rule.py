@@ -14,13 +14,14 @@ rule association:
 
 rule sparse_cca:
     input: 
-        data = "data/raw/{tax}_{time}_{met}.rds"
+        data = "data/processed/{tax}_{time}_{met}_processed_noprediction.rds"
+        script = "R/sparse_cca.R"
     output: 
         out_file = "snakemake_output/analyses/correlation/{tax}_{time}_{met}_scca.rds"
 
 rule spearman_correlation:
     input:
-        data = "data/raw/{tax}_{time}_{met}.rds"
+        data = "data/processed/{tax}_{time}_{met}_processed_noprediction.rds"
     output: 
         out_file = "snakemake_output/analyses/correlation/{tax}_{time}_{met}_scc.rds"
 

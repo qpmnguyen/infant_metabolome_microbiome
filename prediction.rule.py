@@ -23,13 +23,13 @@ rule prediction_processing:
         data = "data/raw/{tax}_{time}_{met}.rds",
         script = "R/prediction_processing.R"
     output:
-        out_file = "data/processed/{tax}_{time}_{met}_processed.rds"
+        out_file = "data/processed/{tax}_{time}_{met}_processed_prediction.rds"
     shell:
         "RScript {input.script} --input {input.data} --output {output.out_file} --metab.type {wildcards.met}"
 
 rule cross_validation:
     input:
-        data = "data/processed/{tax}_{time}_{met}_processed.rds",
+        data = "data/processed/{tax}_{time}_{met}_processed_prediction.rds",
         script = "R/cross_validation.R",
         model_script = "R/modelfit.R"
     output:

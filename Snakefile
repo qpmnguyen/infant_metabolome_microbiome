@@ -41,6 +41,14 @@ rule data_retrieval:
     shell:
         "RScript {input.script} --input {input.dir_file} --output {output.out_file} --time {wildcards.time} --metab_type {wildcards.met} --tax_type {wildcards.tax} --fasttree_dir {input.fasttree_dir}" 
 
+rule data_processing_non_prediction:
+    input:
+        file = "data/raw/{tax}_{time}_{met}.rds",
+        script = "R/data_processing_non_prediction.R"
+    output:
+        out_file = "data/processed/{tax}_{time}_{met}_processed_noprediction.rds"
+    shell:
+        "RScript {input.script} --input {input.file} --output {output.out_file}"
 
 include: "ordination.rule.py"
 include: "correlation.rule.py"

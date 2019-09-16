@@ -21,7 +21,7 @@ rule clean_ordination:
 
 rule constructing_distance_matrices:
     input:
-        data = "data/raw/{tax}_{time}_{met}.rds",
+        data = "data/processed/{tax}_{time}_{met}_processed_noprediction.rds",
         script = "R/constructing_distance_matrices.R"
     output:
         out_file = "snakemake_output/analyses/ordinations/{tax}_{time}_{met}_distance.rds"

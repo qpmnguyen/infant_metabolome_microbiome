@@ -858,6 +858,16 @@
       "RemoteSha": "1.2.4.1",
       "Hash": "e0d607e631b0d1d435062cb9e33d6470"
     },
+    "impute": {
+      "Package": "impute",
+      "Version": "1.58.0",
+      "Source": "Bioconductor",
+      "RemoteType": "standard",
+      "RemoteRef": "impute",
+      "RemoteRepos": "https://bioconductor.org/packages/3.9/bioc",
+      "RemoteSha": "1.58.0",
+      "Hash": "d3efbb1b679404f25eaf3d9d149038fa"
+    },
     "ini": {
       "Package": "ini",
       "Version": "0.3.1",

@@ -41,14 +41,9 @@ rmt.test <- function(prcomp.output){
 
 
 ##### main implementation -------------------------------------------------------------------
-
 data <- readRDS(file = opt$input)
 
 # processing the generated data 
-data <- filter_taxa(data, function(x) count(x > 0)[2,2] >= 0.1*length(x), TRUE) # asvs as to be in at least 10% of samples 
-data <- tax_glom(data, taxrank = "Genus") #aggregate to genus level 
-data <- transform_sample_counts(data, function(x) x/ sum(x)) # convert to relative abundance
-data <- filter_taxa(data, function(x) mean(x) > 0.01e-2, TRUE) # mean of at least 0.01 
 tax <- as(otu_table(data), "matrix")
 tree <- phytools::midpoint.root(phy_tree(data)) # midpoint rooting the tree 
 tax_dist <- MiSPU::GUniFrac(otu.tab = tax, tree = tree, alpha = 0.5)$GUniF[,,1]

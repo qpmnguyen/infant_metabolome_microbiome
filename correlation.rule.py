@@ -14,7 +14,7 @@ rule association:
 
 rule sparse_cca:
     input: 
-        data = "data/processed/{tax}_{time}_{met}_processed_noprediction.rds"
+        data = "data/processed/{tax}_{time}_{met}_processed_prediction.rds"
         script = "R/sparse_cca.R"
     output: 
         out_file = "snakemake_output/analyses/correlation/{tax}_{time}_{met}_scca.rds"

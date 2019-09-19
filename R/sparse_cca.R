@@ -50,15 +50,15 @@ perm_test_cca <- function(tax, met,  n_perms){
     for (i in 1:n_perms){
         rand_tax <- randomizeMatrix(tax, null.model = "richness", iterations = 1000)
         rand_met <- randomizeMatrix(met, null.model = "richness", iterations = 1000)
-        cross_val <- CCA.permute(x = rand_tax, y = rand_met, typex = "standard",typez = "standard", nperms = 50, niter = 5, standardize = T)
-        cca_mod <- CCA(x = tax[idx,], z = met[idx,], typex = "standard", typez = "standard")
+        cross_val <- CCA.permute(x = rand_tax, z = rand_met, typex = "standard",typez = "standard", nperms = 50, niter = 5, standardize = T)
+        cca_mod <- CCA(x = rand_tax, z = rand_met, typex = "standard", typez = "standard")
         null_corr[i] <- cca_mod$cors
     } 
     return(null_corr)
-   
 }  
 
+perm_test = perm_test_cca(met, tax, n_perms = 999)
+result <- list(cca = cca, boot = boot, perm_test)
 
-
-result <- list(cca = cca, boot = boot)
+saveRDS(result, file = opt$output)
 

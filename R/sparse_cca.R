@@ -12,6 +12,7 @@ option_list <- list(
   make_option("--output", help = "Output file for data loading")
 )
 
+opt <- parse_args(OptionParser(option_list = option_list))
 
 data <- readRDS(file = opt$input)
 
@@ -61,4 +62,3 @@ perm_test = perm_test_cca(met, tax, n_perms = 999)
 result <- list(cca = cca, boot = boot, perm_test)
 
 saveRDS(result, file = opt$output)
-

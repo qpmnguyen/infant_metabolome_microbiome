@@ -21,11 +21,11 @@ rule clean_prediction:
 rule prediction_processing:
     input:
         data = "data/raw/{tax}_{time}_{met}.rds",
-        script = "R/prediction_processing.R"
+        script = "R/data_processing_prediction.R"
     output:
         out_file = "data/processed/{tax}_{time}_{met}_processed_prediction.rds"
     shell:
-        "RScript {input.script} --input {input.data} --output {output.out_file} --metab.type {wildcards.met}"
+        "RScript {input.script} --input {input.data} --output {output.out_file} --metab_type {wildcards.met}"
 
 rule cross_validation:
     input:

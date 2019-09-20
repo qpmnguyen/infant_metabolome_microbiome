@@ -6,6 +6,7 @@
 library(phyloseq)
 library(optparse)
 library(compositions)
+library(plyr)
 
 option_list <- list(
   make_option("--input", help = "Input file for data processing"),
@@ -33,15 +34,15 @@ temp_names <- rownames(met)
 met <- apply(met, 2, as.numeric)
 rownames(met) <- temp_names
 rm(temp_names)
-control_idx <- grep("DSS", colnames(met))
-met <- met[,-c(1,control_idx)]
-
+control_idx <- grep("DSS", colnames(met)) #removing the calibration column
+met <- met[,-c(1,control_idx)] # removing information including batch information
 if (opt$metab_type == "tar"){
     met <- log(met + 1) # log x+1 transformation
 } else if (opt$metab_type == "untar"){
     met <- met
     met <- unclass(acomp(met)) # renormalize to relative abundances
     met <- asin(sqrt(met)) # arcsine square root transformation 
+    colnames(met) <- paste0("B",1:ncol(met))
 }
 
 output <- list(met = met, tax = tax, tab = tax_table(data), tree = phy_tree(data))

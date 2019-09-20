@@ -46,4 +46,4 @@ rule ordination_plots:
         met_plot = "snakemake_output/figures/ordinations/{tax}/{time}/{met}/met_ordinations.{ext}",
         tax_plot = "snakemake_output/figures/ordinations/{tax}/{time}/{met}/tax_ordinations.{ext}"
     shell:
-        "Rscript {input.script} --input {input.data} --metab_type {wildcards.met} --time {wildcards.time} --tax {wildcards.tax}"
+        "Rscript {input.script} --input {input.data} --metab_type {wildcards.met} --time {wildcards.time} --tax_type {wildcards.tax}"

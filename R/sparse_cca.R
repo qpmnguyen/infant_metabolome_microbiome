@@ -17,22 +17,14 @@ opt <- parse_args(OptionParser(option_list = option_list))
 data <- readRDS(file = opt$input)
 
 # some pre-processing to make sure everything is in the same format
-tax <- as(otu_table(data), "matrix")
-met <- as(sample_data(data), "matrix") # this procedure turns everything into character
-temp_names <- rownames(met)
-met <- apply(met, 2, as.numeric)
-rownames(met) <- temp_names
-rm(temp_names)
+tax <- data$tax
+met <- data$met
 
 # adding two data frames together and calculate n_cols 
 comb <- cbind(tax, met)
 n_cols <- ncol(tax)
 total_cols <- ncol(comb)
-
-# running the model  
-cv <- CCA.permute(x = tax, z = met, typex = "standard", typez = "standard", nperms = 50, niter = 5, standardize = T)
-cca <- CCA(x = tax, z = met, K = 1, penaltyx = cv$bestpenaltyx, penaltyz = cv$bestpenaltyz, niter = 50)
-
+ 
 # bootstrap resamplings of the data 
 cca_calculation <- function(data, idx, n_cols_first_dat, total_cols){
     tax <- data[,1: n_cols_first_dat]
@@ -42,8 +34,6 @@ cca_calculation <- function(data, idx, n_cols_first_dat, total_cols){
     return(cca_mod$cors)
 }
 
-# bootstrapped 
-boot <- boot(comb, cca_calculation, R = 999)
 
 # permutation test 
 perm_test_cca <- function(tax, met,  n_perms){
@@ -58,7 +48,15 @@ perm_test_cca <- function(tax, met,  n_perms){
     return(null_corr)
 }  
 
+# Running the model 
+cv <- CCA.permute(x = tax, z = met, typex = "standard", typez = "standard", nperms = 50, niter = 5, standardize = T)
+cca <- CCA(x = tax, z = met, K = 1, penaltyx = cv$bestpenaltyx, penaltyz = cv$bestpenaltyz, niter = 50)
+
+# bootstrapped 
+boot <- boot(comb, cca_calculation, R = 999)
+
+# permutation test 
 perm_test = perm_test_cca(met, tax, n_perms = 999)
-result <- list(cca = cca, boot = boot, perm_test)
+result <- list(cca = cca, boot = boot, perm_test, tab = data$tab)
 
 saveRDS(result, file = opt$output)

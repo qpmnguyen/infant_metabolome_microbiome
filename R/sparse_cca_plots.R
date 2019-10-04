@@ -13,6 +13,7 @@ library(grid)
 
 option_list <- list(
   make_option("--input", help = "Input file for data loading"),
+  make_option("--correlation", help = "Pre-generated correlation matrix from spearman correlation step"),
   make_option("--time", help = "Data time point to extract"),
   make_option("--metab_type", help = "Data type for metabolite data, can be 'tar' or 'untar'"),
   make_option("--tax_type", help = "Data type for taxonomic data, so far only '16S' is supported")
@@ -21,16 +22,17 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 data <- readRDS(file = opt$input)
-
+correlation <- readRDS(file = opt$correlation)$cor_mat
 # Plotting CCA results 
 cca <- data$cca
 tax_id <- which(cca$u != 0)
 met_idx <- which(cca$v != 0)
 
-combined <- cbind(tax[,tax_idx], met[,met_idx])
+#combined <- cbind(tax[,tax_idx], met[,met_idx])
 
 # Calculate correlation matrix 
-correlation <- cor(tax[,tax_idx], met[,met_idx], method = "spearman")
+correlation <- correlation[tax_idx, met_idx]
+#correlation <- cor(tax[,tax_idx], met[,met_idx], method = "spearman")
 # grab family-genus names and italicize them 
 tax_names <- paste(data$tab[tax_idx][,c("Family")], data$tab[tax_idx][,c("Genus")]) #Family-Genus names
 tax_names <- as.expression(sapply(tax_names, function(x){

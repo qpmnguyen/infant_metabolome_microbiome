@@ -6,6 +6,7 @@ library(optparse)
 library(ggplot2)
 library(ggpubr)
 library(vegan)
+library(viridis)
 
 option_list <- list(
   make_option("--input", help = "Input file for data loading"),
@@ -16,7 +17,7 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list = option_list))
 
-output_folder <- paste0("figures/ordinations/",opt$tax_type, "/", opt$time, "/", opt$metab_type, "/")
+output_folder <- paste0("snakemake_output/figures/ordinations/",opt$tax_type, "/", opt$time, "/", opt$metab_type, "/")
 data <- readRDS(file = opt$input)
 
 tax_ord <- data$tax_ord
@@ -54,7 +55,7 @@ plt <- ggscatter(plot_dat, x= "NMDS1", y = "NMDS2",
             ellipse.type = "t",
             star.plot = F, mean.point = F,
             repel = T)
-plt <- ggpar(plt,subtitle = paste("Procrustes SoS:", round(proc_test$ss,4), "; Sig:", round(proc_test$signif,4)))
+plt <- ggpar(plt,subtitle = paste("Procrustes SoS:", round(proc_test$ss,4), "; Sig:", round(proc_test$signif,4)), palette = viridis(2))
 
 saveRDS(plt, file = paste0(output_folder, "joint_protest_ordinations.rds"))
 ggsave(filename = paste0(output_folder, "joint_protest_ordinations.svg"), plot = plt, device = "svg")

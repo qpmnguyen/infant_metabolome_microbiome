@@ -15,7 +15,6 @@ library(cowplot)
 ```
 
 ```{r}
-
 fig1 <- readRDS(file = "../snakemake_output/figures/correlation/16S_6W_tar_scc_plots.rds")
 fig2 <- readRDS(file = "../snakemake_output/figures/correlation/16S_12M_tar_scc_plots.rds")
 

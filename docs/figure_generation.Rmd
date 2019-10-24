@@ -1,0 +1,24 @@
+---
+title: "Figure generation"
+author: "Quang Nguyen"
+date: "10/22/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F)
+library(gridExtra)
+library(ggplot2)
+library(ggpubr)
+library(ggplotify)
+library(cowplot)
+```
+
+```{r}
+fig1 <- readRDS(file = "../snakemake_output/figures/correlation/16S_6W_tar_scc_plots.rds")
+fig2 <- readRDS(file = "../snakemake_output/figures/correlation/16S_12M_tar_scc_plots.rds")
+
+(combined_plot <- plot_grid(fig1,fig2, labels ="AUTO", label_size = 20))
+ggsave(combined_plot, file = "./publication_figures/scc_plots_concentration.svg", width = 18, height = 15, 
+       device = "svg")
+```

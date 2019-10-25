@@ -7,10 +7,8 @@ library(caret)
 library(MLmetrics)
 
 option_list <- list(
-  make_option("--calibrate_data", help = "data set to calibrate too"),
-  make_option("--time", help = "Data time point to extract"),
-  make_option("--metab_type", help = "Data type for metabolite data, can be 'tar' or 'untar'"),
-  make_option("--tax_type", help = "Data type for taxonomic data, so far only '16S' is supported"),
+  make_option("--calibrate_data_1", help = "data set 1 to calibrate to"),
+  make_option("--calibrate_data_2", help = "data set 2 to calibrate to"),
   make_option("--outcome_type", help = "assc for positive simulations, none for unassociated outcomes"),
   make_option("--n_datasets", help = "Number of data sets"),
   make_option("--snr", help = "Signal to noise ratio"),
@@ -106,16 +104,17 @@ output <- list(datasets = datasets, params = list(
   n_datasets = opt$n_datasets, 
   perc_assc = opt$perc_assc,
   outcome_type = opt$outcome_type, 
-  calibrate = c(opt$time, opt$tax_type, opt$metab_type),
   snr = opt$snr, 
   sample_size = opt$sample_size,
   calibrate_outcome = opt$calibrate_outcome
 ))
 
-saveRDS(output, file = paste0("snakemake_output/simulation/", opt$perc_assc,"_overall_dataset.rds"))
+saveRDS(output, file = paste0("snakemake_output/simulation/", opt$outcome_type,"_",opt$snr,"_",opt$perc_assc,"_overall_dataset.rds"))
 sapply(1:opt$n_datasets, function(x){
   obj <- datasets[[x]]
-  path = paste0("snakemake_output/simulation/single_obj/", opt$perc_assc, "/", "simulated_", x, ".rds")
-  saveRDS(obj, file = path)
+  path = paste0("snakemake_output/simulation/single_obj/", opt$outcome_type, "/",opt$snr,"/",opt$perc_assc, "/")
+  if(!dir.exists(path)){
+    dir.create(path, recursive = T)
+  }
+  saveRDS(obj, file = paste0(path, "simulated_", x, ".rds"))
 })
-

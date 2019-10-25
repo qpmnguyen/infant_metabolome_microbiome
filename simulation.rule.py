@@ -1,4 +1,4 @@
-
+# Rule set to govern the creation of simulated data sets
 
 
 rule simluation: 
@@ -7,4 +7,4 @@ rule simluation:
 
 rule generate_positive_simulations:
   input:
-    data = 
+    data = "data/"

@@ -3,6 +3,7 @@ library(caret)
 library(spls)
 library(MLmetrics)
 library(phyloseq)
+# Install 'randomforest', 'spls', 'gbm', 'xgboost', 'kernlab'
 
 option_list <- list(
   make_option("--input", help="Input rds file of results"),
@@ -11,7 +12,8 @@ option_list <- list(
   make_option("--infolds", type = "integer", help = "Number of inner folds"),
   make_option("--outfolds", type = "integer", help = "Number of outer folds"),
   make_option("--metid", type = "integer", help = "Index of metabolite to fit"),
-  make_option("--preprocess", type = "logical", help = "Whether to center and scale the x matrix")
+  make_option("--preprocess", type = "logical", help = "Whether to center and scale the x matrix"),
+  make_option("--metabtype", type = "character", help = "Type of metabolite data to inform back transformations")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
@@ -26,7 +28,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 #' @param control This controls the parameter tuning portion of all models 
 modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds = NULL, control = NULL){
   # certain model translations to work between common knowledge and caret specific syntax
-  model_translate = list(enet = "glmnet", rf = "rf", svm = "svmRadial", gbm = "gbm", xgboost = "xgbTree")
+  model_translate <- list(enet = "glmnet", rf = "rf", svm = "svmRadial", gbm = "gbm", xgboost = "xgbTree")
   if (is.null(control) == T){
     print("Using default parameters for training...")
     control <- list(method = "cv", search = "grid", verboseIter = T, tuneLength = 50)
@@ -36,25 +38,25 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
   if (is.null(control) == F & length(control) < 4){
     stop("Control list not completely specified, please fill everything in if using custom control parameters")
   }
-  # initialize prediction dataframe 
+  # initialize prediction list
   pred_matrix <- list()
   # custom folds or random folds    
   if (is.null(folds) == T){
-    folds <- createFolds(1:nrow(predictors),out.folds)  
+    folds <- caret::createFolds(1:nrow(predictors),out.folds)  
   }
-  ctrl <- trainControl(method = control$method, number = in.folds, search = control$search, verboseIter = control$verboseIter)
+  ctrl <- caret::trainControl(method = control$method, number = in.folds, search = control$search, verboseIter = control$verboseIter)
   for(i in 1:length(folds)){
+    test <- folds[[i]]
     met.train <- response[-test]
     met.test <- response[test]
     tax.train <- predictors[-test,]
     tax.test <- predictors[test,]
     # fitting models 
     if (model %in% c("enet", "svm", "rf", "xgboost")){
-      tune_grid <- expand.grid()
       fit <- train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]], 
                    metric = "RMSE", tuneLength = control$tuneLength)
       predictions <- predict(fit, tax.test)
-    } if (model == "gbm"){
+    } else if (model == "gbm"){
       fit <- train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]], metric = "RMSE",
                    tuneLength = control$tuneLength, bag.fraction = 0.75)
       predictions <- predict(fit, tax.test)
@@ -63,35 +65,34 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
                         scale.x = F, scale.y = F, kappa = 0.5, plot.it = F)
       fit <- spls(tax.train, met.train, K = mod.cv$K.opt, eta = mod.cv$eta.opt,
                   scale.x = F, scale.y  = F, kappa = 0.5) 
-      predictions <- predict.spls(fit, newx=tax.test, type = "fit")
+      predictions <- spls::predict.spls(fit, newx=tax.test, type = "fit")
     } 
     # parsing outputs
     # back transformations 
-    if (opt$metab_type == "tar"){
+    if (opt$metabtype == "tar"){
       predictions <- exp(predictions) - 1
       met.test <- exp(met.test) - 1
-    } else if (opt$metab_type == "untar"){
+    } else if (opt$metabtype == "untar"){
       predictions <- sin(predictions^2)
       met.test <- sin(met.test^2)
     }
     pred_matrix[[i]] <- cbind(predictions, met.test)
     print(paste("Finish fold",i,"..."))
   }
-  result <- list(rmse = rmse, r2 = r2, rrse = rrse, corr = corr)
-  return(result)
+  return(pred_matrix)
 }
 
 data <- readRDS(file = opt$input)
 tax <- data$tax
-met <- data$met 
-met <- met[,opt$metid]
+met <- data$met[,opt$metid] 
 
-if (opt$preprocess = T){
+if (opt$preprocess == T){
   tax <- as.matrix(scale(tax, center = T, scale = T))
 }
 
-result <- modelfit.fun(response = met, predictors = tax, model = opt$method, 
+result <- modelfit.fn(response = met, predictors = tax, model = opt$method, 
                        in.folds = opt$infolds, out.folds = opt$outfolds)
-saveRDS(result, file = opt$output)
+path <- paste0("snakemake_output/analyses/prediction/", opt$output_label, "_", opt$method, "_", opt$metid, ".rds")
+saveRDS(result, file = path)
 
 

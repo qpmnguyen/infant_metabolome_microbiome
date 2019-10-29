@@ -2,7 +2,8 @@ library(optparse)
 library(reshape2)
 library(caret)
 library(MLmetrics)
-options_list <- list(
+
+option_list <- list(
   make_option("--model", help = "Selected model for evaluation"),
   make_option("--metab_type", help = "Type of metabolomics data"),
   make_option("--time", help = "Data time point to extract"),
@@ -13,7 +14,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 names <- paste0(opt$tax_type, "_", opt$time, "_", opt$metab_type, "_", opt$model)
 #TODO add names into files line 
-files <- paste0("snakemake_output/analyses/prediction/",list.files("snakemake_output/analyses/prediction", pattern = "16S_12M_tar_svm"))
+files <- paste0("snakemake_output/analyses/prediction/",list.files("snakemake_output/analyses/prediction", pattern = names))
 results <- lapply(files, readRDS)
 correlation <- c()
 for (i in seq_len(length(results))){
@@ -31,12 +32,12 @@ for (i in seq_len(length(results))){
 }
 r2 <- t(r2)
 
-met_names <- colnames(readRDS(file = paste0("data/processed/", opt$tax_type, "_", opt$time, "_", opt$metab_type, ".rds"))$met)
+met_names <- colnames(readRDS(file = paste0("data/processed/", opt$tax_type, "_", opt$time, "_", opt$metab_type, "_processed_prediction.rds"))$met)
 names_order <- as.vector(sapply(files, function(x){
   as.numeric(strsplit(strsplit(x, ".rds")[[1]], "_")[[1]][6])
 }))
 
-names(result) <- met_names[names_order]
+names(results) <- met_names[names_order]
 colnames(r2) <- met_names[names_order]
 colnames(correlation) <- met_names[names_order]
 output <- list(raw = results, correlation = correlation, r2 = r2)

@@ -1,7 +1,7 @@
 TIME = ["6W", "12M"]
 MET = ["tar", "untar"]
 TAX = ["16S"]
-METHODS = ["rf", "svm", "enet", "spls"]
+METHODS = ["rf", "svm", "enet", "spls", "xgboost", ""]
 EXT = ['rds', 'svg']
 
 localrules: prediction_processing, prediction_eval, prediction_plots
@@ -30,10 +30,9 @@ rule prediction_processing:
 rule cross_validation:
     input:
         data = "data/processed/{tax}_{time}_{met}_processed_prediction.rds",
-        script = "R/cross_validation.R",
-        model_script = "R/modelfit.R"
+        script = "R/modelfit.R"
     output:
-        out_file = "snakemake_output/analyses/prediction/{tax}_{time}_{met}_{methods}_prediction_values.rds"
+        out_file = "snakemake_output/analyses/prediction/{tax}_{time}_{met}_{methods}_{metid}.rds"
     shell:
         "RScript {input.script} --model {input.model_script} --input {input.data}"
 

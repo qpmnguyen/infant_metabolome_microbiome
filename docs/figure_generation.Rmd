@@ -19,6 +19,17 @@ fig1 <- readRDS(file = "../snakemake_output/figures/correlation/16S_6W_tar_scc_p
 fig2 <- readRDS(file = "../snakemake_output/figures/correlation/16S_12M_tar_scc_plots.rds")
 
 (combined_plot <- plot_grid(fig1,fig2, labels ="AUTO", label_size = 20))
-ggsave(combined_plot, file = "./publication_figures/scc_plots_concentration.svg", width = 18, height = 15, 
-       device = "svg")
+ggsave(combined_plot, file = "./publication_figures/scc_plots_concentration.png", width = 18, height = 15, 
+       device = "png")
+```
+
+```{r}
+fig1 <- readRDS(file="../snakemake_output/figures/ordinations/16S/12M/tar/joint_protest_ordinations.rds")
+fig2 <- readRDS(file="../snakemake_output/figures/ordinations/16S/6W/tar/joint_protest_ordinations.rds")
+leg <- get_legend(fig2)
+(combined_plot <- plot_grid(fig2 + theme(legend.position = "none"), 
+                            fig1 + theme(legend.position = "none"), labels = "AUTO", label_size = 20))
+combined_plot <- plot_grid(combined_plot, leg, ncol = 1, rel_heights = c(1,.1))
+ggsave(combined_plot, file = "./publication_figures/joint_ordination_plot.png", width = 10, height = 7, 
+       device = "png")
 ```

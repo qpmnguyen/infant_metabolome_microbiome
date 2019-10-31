@@ -8,8 +8,10 @@ localrules: prediction_processing, prediction_eval, prediction_plots
 
 rule prediction:
     input:
-        eval_plots = expand("snakemake_output/figures/prediction/{tax}_{time}_{met}_{methods}_prediction_plots.{ext}", tax = TAX, 
-        time = TIME, met = MET, methods = METHODS, ext = EXT) 
+        processed_files = expand("data/processed/{tax}_{time}_{met}_processed_prediction.rds", tax = TAX, time = TIME, met = MET, 
+        methods = METHODS)
+        # eval_plots = expand("snakemake_output/figures/prediction/{tax}_{time}_{met}_{methods}_prediction_plots.{ext}", tax = TAX, 
+        # time = TIME, met = MET, methods = METHODS, ext = EXT) 
 
 rule clean_prediction:
     shell:

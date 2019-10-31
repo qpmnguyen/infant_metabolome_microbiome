@@ -24,7 +24,7 @@ data <- filter_taxa(data, function(x) count(x > 0)[2,2] >= 0.1*length(x), TRUE) 
 otu_table(data) <- otu_table(data) + 1 # adding pseudocount
 data <- tax_glom(data, taxrank = "Genus") #aggregate to genus level 
 data <- transform_sample_counts(data, function(x) x/ sum(x)) # convert to relative abundance
-data <- filter_taxa(data, function(x) mean(x) > 0.01e-2, TRUE) # mean of at least 0.01 
+data <- filter_taxa(data, function(x) mean(x) > 0.005e-2, TRUE) # mean of at least 0.01 
 tax <- as(otu_table(data), "matrix")
 tax <- unclass(clr(tax)) # centerd log_ratio transformation 
 

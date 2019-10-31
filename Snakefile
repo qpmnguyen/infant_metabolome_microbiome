@@ -11,13 +11,13 @@ rule all:
         met_ordinations = expand("snakemake_output/figures/ordinations/{tax}/{time}/{met}/met_ordinations.{ext}", 
         tax = TAX, time = TIME, met = MET, ext = EXT),
         tax_ordinations = expand("snakemake_output/figures/ordinations/{tax}/{time}/{met}/tax_ordinations.{ext}", 
-        tax = TAX, time = TIME, met = MET, ext = EXT),
-        eval_plots = expand("snakemake_output/figures/prediction/{tax}_{time}_{met}_{methods}_prediction_plots.{ext}", tax = TAX, 
-        time = TIME, met = MET, methods = METHODS, ext = EXT),
-        sparse_cca_plots = expand("snakemake_output/figures/correlation/{tax}_{time}_{met}_scca_plots.{ext}", 
-        tax = TAX, time = TIME, met = MET, ext = EXT),
-        spearman_correlation_plots = expand("snakemake_output/figures/correlation/{tax}_{time}_{met}_scc_plots.{ext}", 
-        tax = TAX, time = TIME, met = MET, ext = EXT) 
+        tax = TAX, time = TIME, met = MET, ext = EXT)
+        #eval_plots = expand("snakemake_output/figures/prediction/{tax}_{time}_{met}_{methods}_prediction_plots.{ext}", tax = TAX, 
+        #time = TIME, met = MET, methods = METHODS, ext = EXT),
+        #sparse_cca_plots = expand("snakemake_output/figures/correlation/{tax}_{time}_{met}_scca_plots.{ext}", 
+        #tax = TAX, time = TIME, met = MET, ext = EXT),
+        #spearman_correlation_plots = expand("snakemake_output/figures/correlation/{tax}_{time}_{met}_scc_plots.{ext}", 
+        #tax = TAX, time = TIME, met = MET, ext = EXT) 
 
 rule clean_analyses:
     shell:

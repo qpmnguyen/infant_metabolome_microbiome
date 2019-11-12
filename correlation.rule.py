@@ -6,8 +6,8 @@ EXT = ['rds', 'svg']
 
 rule association:
     input:
-        sparse_cca_plots = expand("snakemake_output/figures/correlation/{tax}_{time}_{met}_scca_plots.{ext}", 
-        tax = TAX, time = TIME, met = MET, ext = EXT),
+        #sparse_cca_plots = expand("snakemake_output/figures/correlation/{tax}_{time}_{met}_scca_plots.{ext}", 
+        #tax = TAX, time = TIME, met = MET, ext = EXT),
         spearman_correlation_plots = expand("snakemake_output/figures/correlation/{tax}_{time}_{met}_scc_plots.{ext}", 
         tax = TAX, time = TIME, met = MET, ext = EXT)
 

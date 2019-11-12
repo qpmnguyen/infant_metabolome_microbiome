@@ -73,8 +73,9 @@ if (raw_pval == 0){
 
 ord <- hclust(dist(correlation, method = "euclidean"))
 cor_melt <- data.frame(melt(correlation), stringsAsFactors = F)
-
-cor_melt$Var1 <- factor(cor_melt$Var1, levels = rownames(correlation)[ord])
+cor_melt$Var1 <- factor(cor_melt$Var1, levels = rownames(correlation)[ord$order])
+dendro <- as.dendrogram(ord)
+dendro_plt <- ggdendrogram(data = dendro, rotate = T)
 
 
 ggplot(cor_melt, aes(y = Var1, x = Var2, fill = value)) + geom_tile() + scale_fill_viridis() + theme_cleveland()

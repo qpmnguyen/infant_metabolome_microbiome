@@ -106,7 +106,7 @@ cca_heatmap <- as.ggplot(cca_heatmap)
 output_name = paste0("snakemake_output/figures/correlation/", opt$tax_type, "_", opt$time, "_", opt$metab_type, "_scca_plots")
 saveRDS(cca_heatmap, file = paste0(output_name, ".rds"))
 ggsave(plot = cca_heatmap, filename = paste0(output_name, ".png"), device = "png", width = 13, height = 16)
-ggsave(plot = cca_heatmap, filename = paste0(output_name, ".svg"), device = "svg", width = 10, height = 13)
+ggsave(plot = cca_heatmap, filename = paste0(output_name, ".svg"), device = "svg", width = 8, height = 8)
 
 
 

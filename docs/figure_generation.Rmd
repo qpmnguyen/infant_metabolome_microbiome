@@ -38,7 +38,9 @@ ggsave(combined_plot, file = "./publication_figures/joint_ordination_plot.png", 
 fig1 <- readRDS(file = "../snakemake_output/figures/correlation/16S_12M_tar_scca_plots.rds")
 fig2 <- readRDS(file = "../snakemake_output/figures/correlation/16S_12M_tar_scc_plots.rds")
 
-combined_plots <- plot_grid(fig2, fig1, nrow = 1, ncol = 2)
-ggsave(combined_plots, file = "./publication_figures/12M_scc_scca_jointplot.png")
-plot(fig1)
+
+combined_plots <- plot_grid(fig2, fig1, nrow = 2, ncol = 2, rel_widths = c(2,1), rel_heights = c(3,1))
+plot(combined_plots)
+ggsave(combined_plots, file = "./publication_figures/12M_scc_scca_jointplot.png", width = 20, height = 15)
+#plot(fig1)
 ```

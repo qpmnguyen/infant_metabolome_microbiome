@@ -50,7 +50,7 @@ tax_names <- as.expression(sapply(tax_names, function(x){
   bquote(italic(.(x)) ~ "spp.")
 }))
 
-tax_names <- paste(tab[tax_idx,][,c("Genus")], "spp.")
+#tax_names <- paste(tab[tax_idx,][,c("Genus")], "spp.")
 family_names <- tab[tax_idx,][,c("Family")]
 
 # plotting 

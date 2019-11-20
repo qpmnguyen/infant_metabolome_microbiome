@@ -25,10 +25,10 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 
 data <- readRDS(file = opt$input)
-data <- readRDS(file = "snakemake_output/analyses/correlation/16S_6W_tar_scca.rds")
+#data <- readRDS(file = "snakemake_output/analyses/correlation/16S_6W_tar_scca.rds")
 
 correlation <- readRDS(file = opt$correlation)$cor_mat
-correlation <- readRDS(file = "snakemake_output/analyses/correlation/16S_6W_tar_scc.rds")$cor_mat
+#correlation <- readRDS(file = "snakemake_output/analyses/correlation/16S_6W_tar_scc.rds")$cor_mat
 # Plotting CCA results 
 cca <- data$cca
 tax_idx <- which(cca$u != 0)
@@ -45,41 +45,45 @@ correlation <- correlation[tax_idx, met_idx]
 # grab family-genus names and italicize them 
 
 # version which has family and genus name italicized 
-#tax_names <- paste(tab[tax_idx,][,c("Family")], tab[tax_idx,][,c("Genus")]) #Family-Genus names
-#tax_names <- as.expression(sapply(tax_names, function(x){
-#  bquote(italic(.(x)) ~ "spp.")
-#}))
+tax_names <- paste(tab[tax_idx,][,c("Genus")]) #Family-Genus names
+tax_names <- as.expression(sapply(tax_names, function(x){
+  bquote(italic(.(x)) ~ "spp.")
+}))
 
 tax_names <- paste(tab[tax_idx,][,c("Genus")], "spp.")
 family_names <- tab[tax_idx,][,c("Family")]
 
 # plotting 
-row <- data.frame("sCCA Loading" = as.factor(ifelse(cca$u[tax_idx] > 0, "+","-")), "Family" = as.factor(family_names), check.names = F)
+#row <- data.frame("sCCA Loading" = as.factor(ifelse(cca$u[tax_idx] > 0, "+","-")), "Family" = as.factor(family_names), check.names = F)
+row <- data.frame("sCCA Loading" = as.factor(ifelse(cca$u[tax_idx] > 0, "+","-")), check.names = F)
+
 rownames(row) <- rownames(correlation)
 col <- data.frame("sCCA Loading" = as.factor(ifelse(cca$v[met_idx] > 0, "+","-")), check.names = F)
 rownames(col) <- colnames(correlation)
 ann_colors <- list("sCCA Loading" = c(cividis(10)[1], cividis(10)[10]))
 names(ann_colors$"sCCA Loading") <- as.factor(c("+", "-")) 
 raw_pval <- length(which(data[[3]] >= data$boot$t0))/length(data[[3]])
+
 if (raw_pval == 0){
   title = paste("SCCA Correlation:", round(data$boot$t0,3), 
                "(Bootstrapped 95% CI:", round(quantile(data$boot$t, 0.05),3), "-", round(quantile(data$boot$t, 0.95), 3),
-               "; Permutation p-value < 0.0001)")
+               "; Permutation p-value < 0.001)")
 } else {
   title = paste("SCCA Correlation:", round(data$boot$t0,3),  
                "(Bootstrapped 95% CI:", round(quantile(data$boot$t, 0.05),3), "-", round(quantile(data$boot$t, 0.95), 3),
                "; Permutation p-value :", raw_pval,")")
 }
 
-ord <- hclust(dist(correlation, method = "euclidean"))
-cor_melt <- data.frame(melt(correlation), stringsAsFactors = F)
-cor_melt$Var1 <- factor(cor_melt$Var1, levels = rownames(correlation)[ord$order])
-dendro <- as.dendrogram(ord)
-dendro_plt <- ggdendrogram(data = dendro, rotate = T)
+#ord <- hclust(dist(correlation, method = "euclidean"))
+#cor_melt <- data.frame(melt(correlation), stringsAsFactors = F)
+#cor_melt$Var1 <- factor(cor_melt$Var1, levels = rownames(correlation)[ord$order])
+#dendro <- as.dendrogram(ord)
+#dendro_plt <- ggdendrogram(data = dendro, rotate = T)
 
 
-ggplot(cor_melt, aes(y = Var1, x = Var2, fill = value)) + geom_tile() + scale_fill_viridis() + theme_cleveland()
+#ggplot(cor_melt, aes(y = Var1, x = Var2, fill = value)) + geom_tile() + scale_fill_viridis() + theme_cleveland()
 
+# removed main = title
 cca_heatmap <- pheatmap(
   mat               = correlation,
   annotation_row    = row,
@@ -94,7 +98,6 @@ cca_heatmap <- pheatmap(
   labels_row        = tax_names,
   drop_levels       = TRUE,
   fontsize          = 11,
-  main = title,
   cex = 1, 
   legend = T
 )

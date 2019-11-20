@@ -30,12 +30,13 @@ idx_met <- which(apply(sig,2, function(x){
   all(x == 0)
 }) == F)
 
-sig <- ifelse(sig == 1, "*", "")
+sig <- ifelse(sig == 1, "X", "")
 
-tax_names <- paste(tab[,c("Family")], tab[,c("Genus")]) #Family-Genus names
+tax_names <- paste(tab[,c("Genus")]) #Family-Genus names
 tax_names <- as.expression(sapply(tax_names, function(x){
   bquote(italic(.(x)) ~ "spp.")
 }))
+family_names <- tab[,c("Family")]
 
 met_names <- colnames(cor_mat)
 if (opt$metab_type == "tar"){
@@ -45,6 +46,8 @@ if (opt$metab_type == "tar"){
   display = F
 }
 
+row <- data.frame("Family" = as.factor(family_names), check.names = F)
+rownames(row) <- rownames(cor_mat)
 
 corr_heatmap <- pheatmap(
   mat = cor_mat,

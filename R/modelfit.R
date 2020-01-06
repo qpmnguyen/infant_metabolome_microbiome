@@ -11,6 +11,7 @@ option_list <- list(
   make_option("--method", type = "character", help = "method of modelling"),
   make_option("--infolds", type = "integer", help = "Number of inner folds"),
   make_option("--outfolds", type = "integer", help = "Number of outer folds"),
+  make_option("--nrep", type = "integer", help = "Number of repetitions"),
   make_option("--metid", type = "integer", help = "Index of metabolite to fit"),
   make_option("--preprocess", type = "logical", help = "Whether to center and scale the x matrix"),
   make_option("--metabtype", type = "character", help = "Type of metabolite data to inform back transformations")
@@ -76,7 +77,8 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
       predictions <- sin(predictions^2)
       met.test <- sin(met.test^2)
     }
-    pred_matrix[[i]] <- cbind(predictions, met.test)
+    name <- paste0("outer_fold_", i)
+    pred_matrix[[name]] <- cbind(predictions, met.test)
     print(paste("Finish fold",i,"..."))
   }
   return(pred_matrix)
@@ -90,9 +92,13 @@ if (opt$preprocess == T){
   tax <- as.matrix(scale(tax, center = T, scale = T))
 }
 
-result <- modelfit.fn(response = met, predictors = tax, model = opt$method, 
-                       in.folds = opt$infolds, out.folds = opt$outfolds)
+result <- list()
+for (j in 1:opt$nrep){
+  rep <- modelfit.fn(response = met, predictors = tax, model = opt$method, 
+                        in.folds = opt$infolds, out.folds = opt$outfolds)
+  name <- paste0("rep_", j)
+  result[[name]] <- rep
+}
+
 path <- paste0("snakemake_output/analyses/prediction/", opt$output_label, "_", opt$method, "_", opt$metid, ".rds")
 saveRDS(result, file = path)
-
-

@@ -7,8 +7,7 @@ library(caret)
 library(MLmetrics)
 
 option_list <- list(
-  make_option("--calibrate_data_1", help = "data set 1 to calibrate to"),
-  make_option("--calibrate_data_2", help = "data set 2 to calibrate to"),
+  make_option("--calibrate_data", help = "dataset to calibrate to"),
   make_option("--outcome_type", help = "assc for positive simulations, none for unassociated outcomes"),
   make_option("--n_datasets", help = "Number of data sets"),
   make_option("--snr", help = "Signal to noise ratio"),

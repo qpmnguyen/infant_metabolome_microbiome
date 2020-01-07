@@ -1,0 +1,9 @@
+.git/
+.dockerignore
+.Rproj.user/
+.Rprofile
+.Rhistory
+dag.svg
+environment.yml
+*.Rproj
+

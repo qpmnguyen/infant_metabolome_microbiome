@@ -109,8 +109,8 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
 }
 
 data <- readRDS(file = opt$input)
-tax <- data$tax
-met <- data$met[,opt$metid] 
+tax <- otu_table(data)
+met <- tax_table(data)[,opt$metid] 
 
 # check if preprocessing
 if (opt$preprocess == T){

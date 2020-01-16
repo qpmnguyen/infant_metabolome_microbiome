@@ -14,8 +14,8 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 data <- readRDS(file = opt$input)
 
-tax <- data$tax
-met <- data$met 
+tax <- otu_table(tax)
+met <- sample_data(met) 
 
 #(met)[36] <- "pi-Methylhistidine" # unicode issues 
 
@@ -37,7 +37,7 @@ adj_mat <- matrix(p.adjust(as.vector(p_mat), method = "BH"), ncol = ncol(p_mat),
 result <- list(
   cor_mat = correlation,
   p_mat = adj_mat,
-  tax_tab = data$tab
+  tax_tab = tax_table(data)
 )
 
 saveRDS(file = opt$output, object = result)

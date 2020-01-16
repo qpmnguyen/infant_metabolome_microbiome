@@ -3,7 +3,7 @@ library(caret)
 library(spls)
 library(MLmetrics)
 library(phyloseq)
-# Install 'randomforest', 'spls', 'gbm', 'xgboost', 'kernlab'
+# Install 'randomforest', 'spls', 'gbm', 'xgboost', 'kernlab', 'glmnet', 'plyr'
 
 option_list <- list(
   make_option("--input", help="Input rds file of results"),
@@ -23,29 +23,55 @@ opt <- parse_args(OptionParser(option_list = option_list))
 #' @description This function does nested cross validation for each of the selected models for single target only  
 #' @param response Vector of responses 
 #' @param predictors Matrix of predictors  
-#' @param model Model to fit which includes \code{enet}, \code{rf}, \code{svm}, \code{spls}, \code{gbm}, \code{xgboost}
+#' @param model Model to fit which includes \code{enet}, \code{rf}, \code{svm_rbf}, \code{spls}, \code{gbm}, \code{xgboost}
 #' @param in.folds Number of inner folds
 #' @param out.folds Number of outer folds  
-#' @param control This controls the parameter tuning portion of all models 
-modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds = NULL, control = NULL){
+#' @param parallel Allows for parallel processing with caret for internal cross validation 
+modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds = NULL,
+                        parallel = F, n_cores = NULL){
   # certain model translations to work between common knowledge and caret specific syntax
-  model_translate <- list(enet = "glmnet", rf = "rf", svm = "svmRadial", gbm = "gbm", xgboost = "xgbTree")
-  if (is.null(control) == T){
-    print("Using default parameters for training...")
-    control <- list(method = "cv", search = "grid", verboseIter = T, tuneLength = 50)
-    print(control)
-  }  
-  # setting control parameters 
-  if (is.null(control) == F & length(control) < 4){
-    stop("Control list not completely specified, please fill everything in if using custom control parameters")
-  }
+  model_translate <- list(enet = "glmnet", rf = "rf", svm_rbf = "svmRadial", gbm = "gbm", xgboost = "xgbTree")
   # initialize prediction list
   pred_matrix <- list()
   # custom folds or random folds    
   if (is.null(folds) == T){
     folds <- caret::createFolds(1:nrow(predictors),out.folds)  
   }
-  ctrl <- caret::trainControl(method = control$method, number = in.folds, search = control$search, verboseIter = control$verboseIter)
+  # setting parameters for models 
+  ctrl <- caret::trainControl(method = "cv", 
+                              number = in.folds, 
+                              search = "grid", 
+                              verboseIter = T,
+                              allowParallel = T)
+  if (model == "enet"){
+    tune_length <- 100
+    tune_grid <- NULL
+  } else if (model == "svm_rbf"){
+    tune_length <- NULL
+    tune_grid <- expand.grid(
+      sigma = sqrt(1/(2*2^seq(-5,15,2))),
+      C = 2^seq(-15,3,2)
+    )
+  } else if (model == "xgboost"){
+    tune_length <- NULL
+    tune_grid <- expand.grid(
+      nrounds = seq(from=200, to=1000, by = 100), # number of trees
+      eta = c(0.05, 0.1, 0.2, 0.3), # learning rate 
+      gamma = 0, # min_split_loss - thresholding for tree pruning
+      colsample_bytree = c(0.4, 0.6, 0.8, 1.0), # column subsample 
+      subsample = c(0.5, 0.75, 1.0),# row subsample
+      max_depth = c(4,6,8,10), # max tree depth,
+      min_child_weight = 3
+    )
+  } else if (model == "rf"){
+    tune_length <- NULL
+    tune_grid <- data.frame(mtry = sqrt(ncol(predictors)))
+  } else if (model == "spls"){
+    tune_length <- NULL
+    tune_grid <- expand.grid(kappa = 0.5,
+                             K = seq(1,10,1),
+                             eta = seq(0.1,0.9,0.1))
+  }
   for(i in 1:length(folds)){
     test <- folds[[i]]
     met.train <- response[-test]
@@ -53,21 +79,19 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
     tax.train <- predictors[-test,]
     tax.test <- predictors[test,]
     # fitting models 
-    if (model %in% c("enet", "svm", "rf", "xgboost")){
-      fit <- train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]], 
-                   metric = "RMSE", tuneLength = control$tuneLength)
-      predictions <- predict(fit, tax.test)
-    } else if (model == "gbm"){
-      fit <- train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]], metric = "RMSE",
-                   tuneLength = control$tuneLength, bag.fraction = 0.75)
-      predictions <- predict(fit, tax.test)
-    } else if (model == "spls"){
-      mod.cv <- cv.spls(tax.train, met.train, K = c(1:10), eta = seq(0.1,0.9,0.1),
-                        scale.x = F, scale.y = F, kappa = 0.5, plot.it = F)
-      fit <- spls(tax.train, met.train, K = mod.cv$K.opt, eta = mod.cv$eta.opt,
-                  scale.x = F, scale.y  = F, kappa = 0.5) 
-      predictions <- spls::predict.spls(fit, newx=tax.test, type = "fit")
-    } 
+    if (parallel == T){
+      if (is.null(n_cores) == T){
+        stop("If parallel need to determine number of cores")
+      }
+      cl <- parallel::makeForkCluster(n_cores)
+      doParallel::registerDoParallel(cl)
+    }
+    fit <- caret::train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]],
+                        metric = "RMSE", tuneLength = tune_length, tuneGrid = tune_grid)
+    predictions <- predict(fit, tax.test)
+    if (exists(cl) == T){
+      parallel::stopCluster(cl)
+    }
     # parsing outputs
     # back transformations 
     if (opt$metabtype == "tar"){
@@ -88,10 +112,12 @@ data <- readRDS(file = opt$input)
 tax <- data$tax
 met <- data$met[,opt$metid] 
 
+# check if preprocessing
 if (opt$preprocess == T){
   tax <- as.matrix(scale(tax, center = T, scale = T))
 }
 
+# running results as repeated CV
 result <- list()
 for (j in 1:opt$nrep){
   rep <- modelfit.fn(response = met, predictors = tax, model = opt$method, 

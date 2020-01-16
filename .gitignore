@@ -46,7 +46,7 @@ packrat/src/*
 
 # data files 
 data/
-
+data_directory.csv
 # software files 
 software/
 

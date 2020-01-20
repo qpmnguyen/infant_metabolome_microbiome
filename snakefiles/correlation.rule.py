@@ -3,7 +3,7 @@ MET = ["tar", "untar"]
 
 rule all:
     input:
-        spearman_correlation = expand("output/analysis/correlation/{time}_{met}_spearman.rds", time = TIME, met = MET)
+        spearman_correlation = expand("output/analysis/correlation/{time}_{met}_spearman.rds", time = TIME, met = MET),
         sparse_cca = expand("output/analysis/correlation/{time}_{met}_scca.rds", time = TIME, met = MET)
 
 rule sparse_cca:

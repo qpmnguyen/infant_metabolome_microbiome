@@ -31,8 +31,8 @@ opt <- parse_args(OptionParser(option_list = option_list))
 #' @param in.folds Number of inner folds
 #' @param out.folds Number of outer folds  
 #' @param parallel Allows for parallel processing with caret for internal cross validation 
-modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds = NULL,
-                        parallel = F, n_cores = NULL, preprocess = F){
+modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabtype,
+                        folds = NULL, parallel = F, n_cores = NULL, preprocess = F){
   # certain model translations to work between common knowledge and caret specific syntax
   model_translate <- list(enet = "glmnet", rf = "rf", svm_rbf = "svmRadial", gbm = "gbm", xgboost = "xgbTree")
   # initialize prediction list
@@ -41,6 +41,7 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
   if (is.null(folds) == T){
     folds <- caret::createFolds(1:nrow(predictors),out.folds)  
   }
+  print(folds)
   # setting parameters for models 
   ctrl <- caret::trainControl(method = "cv", 
                               number = in.folds, 
@@ -77,17 +78,19 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
                              eta = seq(0.1,0.9,0.1))
   }
   if (preprocess == T){ # if preprocessing is true 
-    predictors <- scale(tax, center = T, scale = T)
+    predictors <- scale(predictors, center = T, scale = T)
     response <- scale(response, center = T, scale = F)
   }
+  print(predictors)
   for(i in 1:length(folds)){
     test <- folds[[i]]
+    print(test)
     met.train <- response[-test]
     met.test <- response[test]
     tax.train <- predictors[-test,]
     tax.test <- predictors[test,]
     # fitting models 
-    if (opt$model %in% c("xgboost", "enet", "spls", "rf", "svm_rbf", "gbm")){
+    if (model %in% c("xgboost", "enet", "spls", "rf", "svm_rbf", "gbm")){
       if (parallel == T){
         if (is.null(n_cores) == T){
           stop("If parallel need to determine number of cores")
@@ -101,9 +104,9 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
       if (exists(cl) == T){
         parallel::stopCluster(cl)
       }
-    } else if (opt$model == "logratiolasso"){
+    } else if (model == "logratiolasso"){
       stop("No implementation")
-    } else if (opt$model == "robregcc"){
+    } else if (model == "robregcc"){
       stop("No implementation")
     }
     # parsing outputs
@@ -112,10 +115,10 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
       predictions <- predictions + attr(response, "scaled:center")
       met.test <- predictions + attr(response, "scaled:center")
     }
-    if (opt$metabtype == "tar"){
+    if (metabtype == "tar"){
       predictions <- exp(predictions) - 1
       met.test <- exp(met.test) - 1
-    } else if (opt$metabtype == "untar"){
+    } else if (metabtype == "untar"){
       predictions <- sin(predictions^2)
       met.test <- sin(met.test^2)
     }
@@ -127,16 +130,16 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
 }
 
 data <- readRDS(file = opt$input)
-tax <- otu_table(data)
-met <- tax_table(data)[,opt$metid] 
+tax <- as(otu_table(data),"matrix")
+met <- as(sample_data(data),"matrix")[,opt$metid] 
 
 
 # running results as repeated CV
 result <- list()
 for (j in 1:opt$nrep){
-  rep <- modelfit.fn(response = met, predictors = tax, model = opt$method, 
+  rep <- modelfit.fn(response = met, predictors = tax, model = opt$method, metabtype = opt$metabtype, 
                      in.folds = opt$infolds, out.folds = opt$outfolds, parallel = T, 
-                     preprocess = opt$preprocess)
+                     preprocess = opt$preprocess, n_cores = opt$infolds)
   name <- paste0("rep_", j)
   result[[name]] <- rep
 }

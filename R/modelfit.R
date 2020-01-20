@@ -3,6 +3,9 @@ library(caret)
 library(spls)
 library(MLmetrics)
 library(phyloseq)
+library(parallel)
+library(doParallel)
+library(phyloseq)
 # Install 'randomforest', 'spls', 'gbm', 'xgboost', 'kernlab', 'glmnet', 'plyr'
 
 option_list <- list(
@@ -14,7 +17,8 @@ option_list <- list(
   make_option("--nrep", type = "integer", help = "Number of repetitions"),
   make_option("--metid", type = "integer", help = "Index of metabolite to fit"),
   make_option("--preprocess", type = "logical", help = "Whether to center and scale the x matrix"),
-  make_option("--metabtype", type = "character", help = "Type of metabolite data to inform back transformations")
+  make_option("--metabtype", type = "character", help = "Type of metabolite data to inform back transformations"),
+  make_option("--parallel", type = "logical", help = "Whether to engage caret's parallel capacities")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
@@ -28,7 +32,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 #' @param out.folds Number of outer folds  
 #' @param parallel Allows for parallel processing with caret for internal cross validation 
 modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds = NULL,
-                        parallel = F, n_cores = NULL){
+                        parallel = F, n_cores = NULL, preprocess = F){
   # certain model translations to work between common knowledge and caret specific syntax
   model_translate <- list(enet = "glmnet", rf = "rf", svm_rbf = "svmRadial", gbm = "gbm", xgboost = "xgbTree")
   # initialize prediction list
@@ -72,6 +76,10 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
                              K = seq(1,10,1),
                              eta = seq(0.1,0.9,0.1))
   }
+  if (preprocess == T){ # if preprocessing is true 
+    predictors <- scale(tax, center = T, scale = T)
+    response <- scale(response, center = T, scale = F)
+  }
   for(i in 1:length(folds)){
     test <- folds[[i]]
     met.train <- response[-test]
@@ -79,21 +87,31 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, folds 
     tax.train <- predictors[-test,]
     tax.test <- predictors[test,]
     # fitting models 
-    if (parallel == T){
-      if (is.null(n_cores) == T){
-        stop("If parallel need to determine number of cores")
+    if (opt$model %in% c("xgboost", "enet", "spls", "rf", "svm_rbf", "gbm")){
+      if (parallel == T){
+        if (is.null(n_cores) == T){
+          stop("If parallel need to determine number of cores")
+        }
+        cl <- parallel::makeForkCluster(n_cores)
+        doParallel::registerDoParallel(cl)
       }
-      cl <- parallel::makeForkCluster(n_cores)
-      doParallel::registerDoParallel(cl)
-    }
-    fit <- caret::train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]],
-                        metric = "RMSE", tuneLength = tune_length, tuneGrid = tune_grid)
-    predictions <- predict(fit, tax.test)
-    if (exists(cl) == T){
-      parallel::stopCluster(cl)
+      fit <- caret::train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]],
+                          metric = "RMSE", tuneLength = tune_length, tuneGrid = tune_grid)
+      predictions <- predict(fit, tax.test)
+      if (exists(cl) == T){
+        parallel::stopCluster(cl)
+      }
+    } else if (opt$model == "logratiolasso"){
+      stop("No implementation")
+    } else if (opt$model == "robregcc"){
+      stop("No implementation")
     }
     # parsing outputs
     # back transformations 
+    if (preprocess == T){
+      predictions <- predictions + attr(response, "scaled:center")
+      met.test <- predictions + attr(response, "scaled:center")
+    }
     if (opt$metabtype == "tar"){
       predictions <- exp(predictions) - 1
       met.test <- exp(met.test) - 1
@@ -112,19 +130,16 @@ data <- readRDS(file = opt$input)
 tax <- otu_table(data)
 met <- tax_table(data)[,opt$metid] 
 
-# check if preprocessing
-if (opt$preprocess == T){
-  tax <- as.matrix(scale(tax, center = T, scale = T))
-}
 
 # running results as repeated CV
 result <- list()
 for (j in 1:opt$nrep){
   rep <- modelfit.fn(response = met, predictors = tax, model = opt$method, 
-                        in.folds = opt$infolds, out.folds = opt$outfolds)
+                     in.folds = opt$infolds, out.folds = opt$outfolds, parallel = T, 
+                     preprocess = opt$preprocess)
   name <- paste0("rep_", j)
   result[[name]] <- rep
 }
 
-path <- paste0("snakemake_output/analyses/prediction/", opt$output_label, "_", opt$method, "_", opt$metid, ".rds")
+path <- paste0("output/analyses/prediction/", opt$output_label, "_", opt$method, "_", opt$metid, ".rds")
 saveRDS(result, file = path)

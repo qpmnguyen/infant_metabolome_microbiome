@@ -8,7 +8,7 @@ rule all:
 
 rule sparse_cca:
     input: 
-        data = "//dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds",
+        data = "/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds",
         script = "R/sparse_cca.R"
     output: 
         out_file = "output/analysis/correlation/{time}_{met}_scca.rds"
@@ -17,7 +17,7 @@ rule sparse_cca:
 
 rule spearman_correlation:
     input:
-        data = "//dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds",
+        data = "/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds",
         script = "R/spearman_corr.R"
     output: 
         out_file = "output/analysis/correlation/{time}_{met}_spearman.rds"

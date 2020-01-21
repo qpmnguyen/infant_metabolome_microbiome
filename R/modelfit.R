@@ -32,7 +32,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 #' @param out.folds Number of outer folds  
 #' @param parallel Allows for parallel processing with caret for internal cross validation 
 modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabtype,
-                        folds = NULL, parallel = F, n_cores = NULL, preprocess = F){
+                        folds = NULL, preprocess = F){
   # certain model translations to work between common knowledge and caret specific syntax
   model_translate <- list(enet = "glmnet", rf = "rf", svm_rbf = "svmRadial", gbm = "gbm", xgboost = "xgbTree")
   # initialize prediction list
@@ -91,19 +91,9 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabt
     tax.test <- predictors[test,]
     # fitting models 
     if (model %in% c("xgboost", "enet", "spls", "rf", "svm_rbf", "gbm")){
-      if (parallel == T){
-        if (is.null(n_cores) == T){
-          stop("If parallel need to determine number of cores")
-        }
-        cl <- parallel::makeForkCluster(n_cores)
-        doParallel::registerDoParallel(cl)
-      }
       fit <- caret::train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]],
                           metric = "RMSE", tuneLength = tune_length, tuneGrid = tune_grid)
       predictions <- predict(fit, tax.test)
-      if (exists(cl) == T){
-        parallel::stopCluster(cl)
-      }
     } else if (model == "logratiolasso"){
       stop("No implementation")
     } else if (model == "robregcc"){
@@ -138,8 +128,7 @@ met <- as(sample_data(data),"matrix")[,opt$metid]
 result <- list()
 for (j in 1:opt$nrep){
   rep <- modelfit.fn(response = met, predictors = tax, model = opt$method, metabtype = opt$metabtype, 
-                     in.folds = opt$infolds, out.folds = opt$outfolds, parallel = T, 
-                     preprocess = opt$preprocess, n_cores = opt$infolds)
+                     in.folds = opt$infolds, out.folds = opt$outfolds, preprocess = opt$preprocess)
   name <- paste0("rep_", j)
   result[[name]] <- rep
 }

@@ -1,10 +1,6 @@
 library(optparse)
 library(caret)
-library(spls)
 library(MLmetrics)
-library(phyloseq)
-library(parallel)
-library(doParallel)
 library(phyloseq)
 # Install 'randomforest', 'spls', 'gbm', 'xgboost', 'kernlab', 'glmnet', 'plyr'
 
@@ -17,8 +13,7 @@ option_list <- list(
   make_option("--nrep", type = "integer", help = "Number of repetitions"),
   make_option("--metid", type = "integer", help = "Index of metabolite to fit"),
   make_option("--preprocess", type = "logical", help = "Whether to center and scale the x matrix"),
-  make_option("--metabtype", type = "character", help = "Type of metabolite data to inform back transformations"),
-  make_option("--parallel", type = "logical", help = "Whether to engage caret's parallel capacities")
+  make_option("--metabtype", type = "character", help = "Type of metabolite data to inform back transformations")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
@@ -34,14 +29,14 @@ opt <- parse_args(OptionParser(option_list = option_list))
 modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabtype,
                         folds = NULL, preprocess = F){
   # certain model translations to work between common knowledge and caret specific syntax
-  model_translate <- list(enet = "glmnet", rf = "rf", svm_rbf = "svmRadial", gbm = "gbm", xgboost = "xgbTree")
+  model_translate <- list(enet = "glmnet", rf = "rf", svm_rbf = "svmRadial", gbm = "gbm", xgboost = "xgbTree",
+                          spls = "spls")
   # initialize prediction list
   pred_matrix <- list()
   # custom folds or random folds    
   if (is.null(folds) == T){
     folds <- caret::createFolds(1:nrow(predictors),out.folds)  
   }
-  print(folds)
   # setting parameters for models 
   ctrl <- caret::trainControl(method = "cv", 
                               number = in.folds, 
@@ -84,7 +79,6 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabt
   print(predictors)
   for(i in 1:length(folds)){
     test <- folds[[i]]
-    print(test)
     met.train <- response[-test]
     met.test <- response[test]
     tax.train <- predictors[-test,]
@@ -94,6 +88,7 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabt
       fit <- caret::train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]],
                           metric = "RMSE", tuneLength = tune_length, tuneGrid = tune_grid)
       predictions <- predict(fit, tax.test)
+      print(predictions)
     } else if (model == "logratiolasso"){
       stop("No implementation")
     } else if (model == "robregcc"){
@@ -103,7 +98,7 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabt
     # back transformations 
     if (preprocess == T){
       predictions <- predictions + attr(response, "scaled:center")
-      met.test <- predictions + attr(response, "scaled:center")
+      met.test <- met.test + attr(response, "scaled:center")
     }
     if (metabtype == "tar"){
       predictions <- exp(predictions) - 1

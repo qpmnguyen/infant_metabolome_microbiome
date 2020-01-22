@@ -14,8 +14,8 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 data <- readRDS(file = opt$input)
 
-tax <- otu_table(tax)
-met <- sample_data(met) 
+tax <- otu_table(data)
+met <- sample_data(data) 
 
 #(met)[36] <- "pi-Methylhistidine" # unicode issues 
 

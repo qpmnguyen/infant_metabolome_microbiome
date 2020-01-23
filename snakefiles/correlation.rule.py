@@ -3,11 +3,14 @@ import platform
 TIME = ["6W", "12M"]
 MET = ["tar", "untar"]
 
-def system_info(plat):
-    if plat == "Darwin":
+def system_info():
+    if platform.system() == "Darwin":
         return(["/Volumes/rc-1/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds"])
-    elif plat == "Linux":
-        return(["/mnt/HoenLab/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds"])
+    elif platform.system() == "Linux":
+        if platform.node() in ["polaris.dartmouth.edu", "andes.dartmouth.edu"]:
+            return(["/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds"])
+        else:
+            return(["/mnt/HoenLab/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds"])
 
 rule all:
     input:
@@ -16,7 +19,7 @@ rule all:
 
 rule sparse_cca:
     input: 
-        data = system_info(platform.system()),
+        data = system_info(),
         script = "R/sparse_cca.R"
     output: 
         out_file = "output/analyses/correlation/{time}_{met}_scca.rds"
@@ -25,7 +28,7 @@ rule sparse_cca:
 
 rule spearman_correlation:
     input:
-        data = system_info(platform.system()),
+        data = system_info(),
         script = "R/spearman_corr.R"
     output: 
         out_file = "output/analyses/correlation/{time}_{met}_spearman.rds"

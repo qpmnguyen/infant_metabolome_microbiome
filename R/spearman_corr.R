@@ -14,8 +14,10 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 data <- readRDS(file = opt$input)
 
-tax <- otu_table(data)
-met <- sample_data(data) 
+tax <- as(otu_table(data), "matrix")
+met <- as(sample_data(data), "matrix")
+print(dim(tax))
+print(dim(met))
 
 #(met)[36] <- "pi-Methylhistidine" # unicode issues 
 
@@ -25,6 +27,7 @@ correlation <- cor(tax, met, method = opt$metric)
 # pairwise correlation
 p_mat <- t(apply(tax, 2, function(x){
   p_vals <- c()
+  print(length(x))
   for (i in 1:ncol(met)){
     p_vals[i] <- cor.test(x = x, y = met[,i], method = opt$metric)$p.value
   }
@@ -32,7 +35,7 @@ p_mat <- t(apply(tax, 2, function(x){
 }))
 
 # BH adjustment 
-adj_mat <- matrix(p.adjust(as.vector(p_mat), method = "BH"), ncol = ncol(p_mat), nrow = nrow(p_mat), byrow = F) # MHC adjustment
+adj_mat <- matrix(p.adjust(as.vector(p_mat), method = opt$MHC), ncol = ncol(p_mat), nrow = nrow(p_mat), byrow = F) # MHC adjustment
 
 result <- list(
   cor_mat = correlation,

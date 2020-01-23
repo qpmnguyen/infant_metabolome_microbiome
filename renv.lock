@@ -226,18 +226,6 @@
       "Repository": "CRAN",
       "Hash": "5f2dab05aaaf51d7f87cf7ecbbe07541"
     },
-    "SpiecEasi": {
-      "Package": "SpiecEasi",
-      "Version": "1.0.7",
-      "Source": "Bioconductor",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "zdk123",
-      "RemoteRepo": "SpiecEasi",
-      "RemoteRef": "master",
-      "RemoteSha": "e4d7c0af49eae1ead40a89c1f569ee589de94776",
-      "Hash": "db9284d7f4c11c9b1d4356aae75fc959"
-    },
     "VGAM": {
       "Package": "VGAM",
       "Version": "1.1-2",

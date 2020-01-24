@@ -11,19 +11,21 @@ opt <- parse_args(OptionParser(option_list = option_list))
 
 # accessing dataset 
 data <- readRDS(file = opt$input)
-tax_dist <- data$tax_dist
-met_dist <- data$met_dist
-
+grid <- expand.grid(
+  tax_dist = names(data)[1:2],
+  met_dist = names(data)[3:4]
+)
+k <- dim(as.matrix(data[[1]]))[1] - 1
+output <- list()
 # Performing ordinations  
-tax_ord <- metaMDS(comm = tax_dist, try = 50, engine = "isoMDS")
-met_ord <- metaMDS(comm = as.matrix(met_dist), try = 50, engine = "isoMDS")
-
-# Procrustes analyses  
-proc_test <- protest(tax_ord, met_ord)
-mant_test <- mantel(tax_dist, as.matrix(met_dist), permutations = 9999)
+for (i in 1:nrow(grid)){
+  tax_ord <- cmdscale(d = data[[as.character(grid$tax_dist[i])]], eig = T, k = 10)
+  met_ord <- cmdscale(d = data[[as.character(grid$met_dist[i])]], eig = T, k = 10)
+  proc_test <- protest(tax_ord, met_ord)
+  results <- list(tax_ord = tax_ord, met_ord = met_ord, proc_test = proc_test)
+  output[[i]] <- results
+}
 
 # saving results  
-results <- list(tax_ord = tax_ord, met_ord = met_ord, proc_test = proc_test,
-                    mant_test = mant_test)
-
-saveRDS(results, file = opt$output)
+names(output) <- with(grid, paste(tax_dist, met_dist, sep = "_"))
+saveRDS(output, file = opt$output)

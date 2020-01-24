@@ -9,9 +9,10 @@ library(RMTstat)
 library(phytools)
 library(optparse)
 library(plyr)
+library(compositions)
 
 option_list <- list(
-  make_option("--input", help = "Input file for data loading"),
+  make_option("--input", help = "Input file for data loading - use raw data instead of processed"),
   make_option("--output", help = "Output file for data loading")
 )
 
@@ -42,27 +43,48 @@ rmt.test <- function(prcomp.output){
 
 ##### main implementation -------------------------------------------------------------------
 data <- readRDS(file = opt$input)
-
-# processing the generated data 
-tax <- as(otu_table(data), "matrix")
+TIME <- strsplit(opt$input, "_")[[1]][2]
+METAB <- strsplit(opt$input, "_")[[1]][3]
 tree <- phytools::midpoint.root(phy_tree(data)) # midpoint rooting the tree 
-tax_dist <- MiSPU::GUniFrac(otu.tab = tax, tree = tree, alpha = 0.5)$GUniF[,,1]
+phyloseq::phy_tree(data) <- tree
+
+# processing taxonomic data 
+data <- tax_glom(data, taxrank = "Genus") #aggregate to genus level 
+data <- transform_sample_counts(data, function(x) x/ sum(x)) # convert to relative abundance
+data <- filter_taxa(data, function(x) mean(x) > 0.005e-2, TRUE) # mean of at least 0.005 percent (ref. Bokulich 2013)
+tax <- as(otu_table(data), "matrix")
+
+# constructing distance matrices 
+tax_dist_Gunifrac <- as.dist(MiSPU::GUniFrac(otu.tab = tax, tree = phy_tree(data))$d5) # generalized unifrac with alpha = 0.5
+tax_dist_euclidean <- dist(unclass(compositions::clr(tax)), method = "euclidean") # euclidean distance under clr transformation 
 
 # processing the metabolomics data 
-met <- as(sample_data(data), "matrix") # this procedure turns everything into character
-temp_names <- rownames(met)
-met <- apply(met, 2, as.numeric)
-rownames(met) <- temp_names
-rm(temp_names)
+if (METAB == "tar"){
+  met <- as(sample_data(data), "matrix") # this procedure turns everything into character
+  temp_names <- rownames(met)
+  met <- apply(met, 2, as.numeric)
+  rownames(met) <- temp_names
+  rm(temp_names)
+  met <- log1p(met) 
+} else if (METAB == "untar"){
+  met <- as(sample_data(data), "matrix")
+  met <- unclass(acomp(met))
+  met <- asin(sqrt(met))
+} else {
+  stop("Not supported met type")
+}
+met_dist_euclidean <- stats::dist(met, "euclidean")
 
-control_idx <- grep("DSS", colnames(met))
-met <- met[,-c(1,control_idx)] # removing some batch information 
+# PCA-based distance  
 princomp <- prcomp(met,center = T, scale = T) # principal component analyses 
 rmt_test <- rmt.test(princomp) # test for significant PCs
 sig_idx <- which(rmt_test$pvals < 0.05) 
 n_PCs <- princomp$x[,sig_idx] # select significant eigen vectors 
-met_dist <- stats::dist(n_PCs, method = "manhattan") # construct manhattan distance matrix
+met_PC_dist_euclidean <- stats::dist(n_PCs, method = "euclidean") # construct manhattan distance matrix
 
 # saving output  
-result <- list(tax_dist = tax_dist, met_dist = met_dist)
+result <- list(tax_dist_Gunifrac = tax_dist_Gunifrac, 
+               tax_dist_euclidean = tax_dist_euclidean,
+               met_dist_euclidean = met_dist_euclidean,
+               met_PC_dist_euclidean = met_PC_dist_euclidean)
 saveRDS(result, file = opt$output)

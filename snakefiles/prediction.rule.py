@@ -1,7 +1,7 @@
 TIME = ["6W", "12M"]
 MET = ["tar", "untar"]
 TAX = ["16S"]
-METHODS = ["rf", "svm", "enet", "spls", "xgboost", ""]
+METHODS = ["rf", "svm", "enet", "spls", "xgboost", "gbm"]
 EXT = ['rds', 'svg']
 
 localrules: prediction_processing, prediction_eval, prediction_plots

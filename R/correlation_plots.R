@@ -14,14 +14,14 @@ library(ggdendro)
 # #FC4E07 nice red 
 
 
-option_list <- list(
-  make_option("--time", help = "Data time point to extract"),
-  make_option("--metab_type", help = "Data type for metabolite data, can be 'tar' or 'untar'")
-)
+# option_list <- list(
+#  make_option("--time", help = "Data time point to extract"),
+#  make_option("--metab_type", help = "Data type for metabolite data, can be 'tar' or 'untar'")
+# )
 
-opt <- parse_args(OptionParser(option_list = option_list))
+# opt <- parse_args(OptionParser(option_list = option_list))
 
-data <- readRDS(file = opt$input)
+# data <- readRDS(file = opt$input)
 #data <- readRDS(file = "snakemake_output/analyses/correlation/16S_6W_tar_scca.rds")
 
 correlation <- readRDS(file = opt$correlation)$cor_mat

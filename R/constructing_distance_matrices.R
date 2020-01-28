@@ -48,6 +48,20 @@ METAB <- strsplit(opt$input, "_")[[1]][3]
 tree <- phytools::midpoint.root(phy_tree(data)) # midpoint rooting the tree 
 phyloseq::phy_tree(data) <- tree
 
+#### gunifrac requires a unique distance matrix 
+get_gunifrac <- function(data){
+  data <- transform_sample_counts(data, function(x) x/sum(x))
+  data <- filter_taxa(data, function(x) mean(x) > 0.005e-2, TRUE)
+  tax <- as(otu_table(data), "matrix")
+  tax_gunifrac <- as.dist(MiSPU::GUniFrac(otu.tab = tax, tree = phy_tree(data))$d5)
+  return(tax_gunifrac)
+}
+
+tax_gunifrac <- get_gunifrac(data)
+#TODO check for using euclidean distance vs manhattan distance 
+# rerun everything use laptop or polaris
+
+# getting other data sets  
 # processing taxonomic data 
 data <- tax_glom(data, taxrank = "Genus") #aggregate to genus level 
 data <- transform_sample_counts(data, function(x) x/ sum(x)) # convert to relative abundance
@@ -55,13 +69,12 @@ data <- filter_taxa(data, function(x) mean(x) > 0.005e-2, TRUE) # mean of at lea
 tax <- as(otu_table(data), "matrix")
 
 # constructing distance matrices 
-tax_dist_Gunifrac <- as.dist(MiSPU::GUniFrac(otu.tab = tax, tree = phy_tree(data))$d5) # generalized unifrac with alpha = 0.5
 tax_dist_euclidean <- dist(unclass(compositions::clr(tax)), method = "euclidean") # euclidean distance under clr transformation 
 
 # processing the metabolomics data 
 if (METAB == "tar"){
   met <- as(sample_data(data), "matrix") # this procedure turns everything into character
-  met <- log1p(met) 
+  met <- log(met + 1) 
 } else if (METAB == "untar"){
   met <- as(sample_data(data), "matrix")
   met <- unclass(acomp(met))

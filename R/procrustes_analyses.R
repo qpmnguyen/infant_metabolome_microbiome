@@ -1,6 +1,7 @@
 library(vegan)
 library(ade4)
 library(optparse)
+library(phyloseq)
 
 option_list <- list(
   make_option("--input", help = "Input file for data loading"),

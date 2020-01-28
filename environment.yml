@@ -1,6 +1,0 @@
-name: healthy_infants_robust
-channels:
-  - bioconda
-  - conda-forge
-dependencies:
-  - snakemake

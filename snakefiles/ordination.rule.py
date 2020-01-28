@@ -21,7 +21,7 @@ rule constructing_distance_matrices:
     output:
         out_file = "output/analyses/ordinations/{time}_{met}_distance.rds"
     shell:
-        "RScript {input.script} --input {input.data} --output {output.out_file}"
+        "Rscript {input.script} --input {input.data} --output {output.out_file}"
 
 rule procrustes_analyses: 
     input: 
@@ -30,6 +30,6 @@ rule procrustes_analyses:
     output:
         out_file = "output/analyses/ordinations/{time}_{met}_ordinations.rds"
     shell:
-        "RScript {input.script} --input {input.data} --output {output.out_file}"
+        "Rscript {input.script} --input {input.data} --output {output.out_file}"
 
 

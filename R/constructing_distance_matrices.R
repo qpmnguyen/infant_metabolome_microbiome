@@ -61,10 +61,6 @@ tax_dist_euclidean <- dist(unclass(compositions::clr(tax)), method = "euclidean"
 # processing the metabolomics data 
 if (METAB == "tar"){
   met <- as(sample_data(data), "matrix") # this procedure turns everything into character
-  temp_names <- rownames(met)
-  met <- apply(met, 2, as.numeric)
-  rownames(met) <- temp_names
-  rm(temp_names)
   met <- log1p(met) 
 } else if (METAB == "untar"){
   met <- as(sample_data(data), "matrix")

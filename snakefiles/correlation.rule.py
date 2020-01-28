@@ -5,12 +5,12 @@ MET = ["tar", "untar"]
 
 def system_info():
     if platform.system() == "Darwin":
-        return(["/Volumes/rc-1/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds"])
+        return(["/Volumes/rc-1/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
     elif platform.system() == "Linux":
         if platform.node() in ["polaris.dartmouth.edu", "andes.dartmouth.edu"]:
-            return(["/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds"])
+            return(["/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
         else:
-            return(["/mnt/HoenLab/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_prediction_phyloseq_obj.rds"])
+            return(["/mnt/HoenLab/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
 
 rule all:
     input:

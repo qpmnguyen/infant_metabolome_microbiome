@@ -15,11 +15,8 @@ library(ggdendro)
 
 
 option_list <- list(
-  make_option("--input", help = "Input file for data loading"),
-  make_option("--correlation", help = "Pre-generated correlation matrix from spearman correlation step"),
   make_option("--time", help = "Data time point to extract"),
-  make_option("--metab_type", help = "Data type for metabolite data, can be 'tar' or 'untar'"),
-  make_option("--tax_type", help = "Data type for taxonomic data, so far only '16S' is supported")
+  make_option("--metab_type", help = "Data type for metabolite data, can be 'tar' or 'untar'")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))

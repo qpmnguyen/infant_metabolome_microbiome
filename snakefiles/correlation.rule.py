@@ -1,17 +1,20 @@
 import platform 
+import os
 
 TIME = ["6W", "12M"]
 MET = ["tar", "untar"]
 
 def system_info():
     if platform.system() == "Darwin":
-        return(["/Volumes/rc-1/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
+        if os.path.exists("/Volumes/rc-1/Lab/") == True:
+            return(["/Volumes/rc-1/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
+        else:
+            return(["/Volumes/rc/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
     elif platform.system() == "Linux":
         if platform.node() in ["polaris.dartmouth.edu", "andes.dartmouth.edu"]:
             return(["/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
         else:
             return(["/mnt/HoenLab/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
-
 rule all:
     input:
         spearman_correlation = expand("output/analyses/correlation/{time}_{met}_spearman.rds", time = TIME, met = MET),

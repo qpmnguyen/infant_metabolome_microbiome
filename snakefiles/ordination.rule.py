@@ -5,10 +5,15 @@ MET = ["tar", "untar"]
 
 def system_info(plat):
     if plat == "Darwin":
-        return(["/Volumes/rc-1/Lab/QNguyen/ResultsFiles/data/raw_{time}_{met}_phyloseq_obj.rds"])
+        if os.path.exists("/Volumes/rc-1/Lab/") == True:
+            return(["/Volumes/rc-1/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
+        else:
+            return(["/Volumes/rc/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
     elif plat == "Linux":
-        return(["/mnt/HoenLab/Lab/QNguyen/ResultsFiles/data/raw_{time}_{met}_phyloseq_obj.rds"])
-
+        if platform.node() in ["polaris.dartmouth.edu", "andes.dartmouth.edu"]:
+            return(["/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
+        else:
+            return(["/mnt/HoenLab/Lab/QNguyen/ResultsFiles/data/processed_{time}_{met}_phyloseq_obj.rds"])
 rule ordination:
     input:
         distance = expand("output/analyses/ordinations/{time}_{met}_distance.rds", time = TIME, met = MET),

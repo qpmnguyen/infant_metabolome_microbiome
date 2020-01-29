@@ -1,4 +1,4 @@
-EXT = ["svg", "png"]
+EXT = ["svg", "png", "rds"]
 TIME = ["6W", "12M"]
 METAB = ["tar", "untar"]
 TAX_DIST = ["gunifrac", "euclidean"]

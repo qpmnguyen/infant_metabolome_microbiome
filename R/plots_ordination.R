@@ -60,6 +60,12 @@ proc_test <- input$proc_test
 plot_tax <- plotting_ord(tax_ord)
 plot_met <- plotting_ord(met_ord)
 plot_proc <- plotting_proc(proc_test)
+saveRDS(object = plot_tax, file = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_tax.rds", 
+                                          time = time, metab = metab, tax_dist = opt$tax_dist, met_dist = opt$met_dist))
+saveRDS(object = plot_met, file = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_met.rds", 
+                                        time = time, metab = metab, met_dist = opt$met_dist, tax_dist = opt$tax_dist))
+saveRDS(object = plot_proc, file = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_joint.rds", 
+                                         time = time, metab = metab, tax_dist = opt$tax_dist, met_dist = opt$met_dist))
 for (j in c("svg","png")){
   ggsave(plot = plot_tax, filename = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_tax.{ext}", 
                                           time = time, metab = metab, tax_dist = opt$tax_dist, met_dist = opt$met_dist, ext = j), device = j)

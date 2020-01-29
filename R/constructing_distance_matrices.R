@@ -48,18 +48,17 @@ METAB <- strsplit(opt$input, "_")[[1]][3]
 tree <- phytools::midpoint.root(phy_tree(data)) # midpoint rooting the tree 
 phyloseq::phy_tree(data) <- tree
 
-#### gunifrac requires a unique distance matrix 
+#### gunifrac requires that data be kept at ASV level
 get_gunifrac <- function(data){
   data <- transform_sample_counts(data, function(x) x/sum(x))
-  data <- filter_taxa(data, function(x) mean(x) > 0.005e-2, TRUE)
+  # data <- filter_taxa(data, function(x) mean(x) > 0.005e-2, TRUE)
   tax <- as(otu_table(data), "matrix")
   tax_gunifrac <- as.dist(MiSPU::GUniFrac(otu.tab = tax, tree = phy_tree(data))$d5)
   return(tax_gunifrac)
 }
 
 tax_gunifrac <- get_gunifrac(data)
-#TODO check for using euclidean distance vs manhattan distance 
-# rerun everything use laptop or polaris
+# TODO check for using euclidean distance vs manhattan distance 
 
 # getting other data sets  
 # processing taxonomic data 

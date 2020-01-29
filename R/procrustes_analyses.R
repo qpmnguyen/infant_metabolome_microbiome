@@ -21,8 +21,8 @@ k <- dim(as.matrix(data[[1]]))[1] - 1
 output <- list()
 # Performing ordinations  
 for (i in 1:nrow(grid)){
-  tax_ord <- pcoa(d = data[[as.character(grid$tax_dist[i])]])
-  met_ord <- pcoa(d = data[[as.character(grid$met_dist[i])]])
+  tax_ord <- pcoa(D = data[[as.character(grid$tax_dist[i])]], correction = "cailliez")
+  met_ord <- pcoa(D = data[[as.character(grid$met_dist[i])]], correction = "cailliez")
   proc_test <- protest(tax_ord$vectors[,c(1,2)], met_ord$vectors[,c(1,2)])
   results <- list(tax_ord = tax_ord, met_ord = met_ord, proc_test = proc_test)
   output[[i]] <- results

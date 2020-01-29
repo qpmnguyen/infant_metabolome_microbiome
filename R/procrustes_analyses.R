@@ -2,6 +2,7 @@ library(vegan)
 library(ade4)
 library(optparse)
 library(phyloseq)
+library(ape)
 
 option_list <- list(
   make_option("--input", help = "Input file for data loading"),
@@ -20,9 +21,9 @@ k <- dim(as.matrix(data[[1]]))[1] - 1
 output <- list()
 # Performing ordinations  
 for (i in 1:nrow(grid)){
-  tax_ord <- cmdscale(d = data[[as.character(grid$tax_dist[i])]], eig = T, k = 10)
-  met_ord <- cmdscale(d = data[[as.character(grid$met_dist[i])]], eig = T, k = 10)
-  proc_test <- protest(tax_ord, met_ord)
+  tax_ord <- pcoa(d = data[[as.character(grid$tax_dist[i])]])
+  met_ord <- pcoa(d = data[[as.character(grid$met_dist[i])]])
+  proc_test <- protest(tax_ord$vectors[,c(1,2)], met_ord$vectors[,c(1,2)])
   results <- list(tax_ord = tax_ord, met_ord = met_ord, proc_test = proc_test)
   output[[i]] <- results
 }

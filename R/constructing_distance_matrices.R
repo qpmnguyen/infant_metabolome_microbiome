@@ -69,7 +69,7 @@ data <- filter_taxa(data, function(x) mean(x) > 0.005e-2, TRUE) # mean of at lea
 tax <- as(otu_table(data), "matrix")
 
 # constructing distance matrices 
-tax_dist_euclidean <- dist(unclass(compositions::clr(tax)), method = "euclidean") # euclidean distance under clr transformation 
+tax_euclidean <- dist(unclass(compositions::clr(tax)), method = "euclidean") # euclidean distance under clr transformation 
 
 # processing the metabolomics data 
 if (METAB == "tar"){
@@ -82,18 +82,19 @@ if (METAB == "tar"){
 } else {
   stop("Not supported met type")
 }
-met_dist_euclidean <- stats::dist(met, "euclidean")
 
+met_euclidean <- stats::dist(met, "euclidean")
+met_manhattan <- stats::dist(met, "manhattan")
 # PCA-based distance  
-princomp <- prcomp(met,center = T, scale = T) # principal component analyses 
-rmt_test <- rmt.test(princomp) # test for significant PCs
-sig_idx <- which(rmt_test$pvals < 0.05) 
-n_PCs <- princomp$x[,sig_idx] # select significant eigen vectors 
-met_PC_dist_euclidean <- stats::dist(n_PCs, method = "euclidean") # construct manhattan distance matrix
+# princomp <- prcomp(met,center = T, scale = T) # principal component analyses 
+# rmt_test <- rmt.test(princomp) # test for significant PCs
+# sig_idx <- which(rmt_test$pvals < 0.05) 
+# n_PCs <- princomp$x[,sig_idx] # select significant eigen vectors 
+# met_PC_dist_euclidean <- stats::dist(n_PCs, method = "euclidean") # construct manhattan distance matrix
 
 # saving output  
-result <- list(tax_dist_Gunifrac = tax_dist_Gunifrac, 
-               tax_dist_euclidean = tax_dist_euclidean,
-               met_dist_euclidean = met_dist_euclidean,
-               met_PC_dist_euclidean = met_PC_dist_euclidean)
+result <- list(tax_gunifrac = tax_gunifrac, 
+               tax_euclidean = tax_euclidean,
+               met_euclidean = met_euclidean,
+               met_manhattan = met_manhattan)
 saveRDS(result, file = opt$output)

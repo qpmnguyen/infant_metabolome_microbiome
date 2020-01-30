@@ -5,6 +5,7 @@ library(glue)
 library(phyloseq)
 library(viridis)
 library(ggplotify)
+library(pheatmap)
 library(optparse)
 
 
@@ -16,8 +17,17 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list = option_list))
 time <- tail(strsplit(strsplit(opt$scca, "_")[[1]][1],"/")[[1]],1)
 metab <- strsplit(opt$scca,"_")[[1]][2]
-print(glue("Time is {time} and metab type is {metab}", time = time, metab = metab))
 
+
+if (metab == "untar"){
+  show_col <- F
+  wid <- 14
+  hei <- 10
+} else {
+  show_col <- T
+  wid <- 10
+  hei <- 10
+}
 ### loading some stuff #### 
 scca <- readRDS(file = opt$scca)
 corr <- readRDS(file = opt$correlation)
@@ -55,7 +65,7 @@ corr_heatmap <- pheatmap(
   mat = cor_mat,
   color = viridis(40),
   border_color = NA,
-  show_colnames = T,
+  show_colnames = show_col,
   show_rownames = T,
   display_numbers = sig,
   labels_row = tax_names,
@@ -112,27 +122,32 @@ reduced_heatmap <-  pheatmap(
   annotation_names_row = T,
   annotation_names_col = T,
   border_color      = NA,
-  show_colnames     = T,
+  show_colnames     = show_col,
   show_rownames     = T,
   labels_row        = tax_names,
   drop_levels       = TRUE,
   fontsize          = 11,
   cex = 1, 
-  legend = T,
-  main = title
+  legend = T
 )
 reduced_heatmap <- as.ggplot(reduced_heatmap)
 
 for (i in c("svg", "png")){
   ggsave(plot = corr_heatmap, filename = glue("output/figures/correlation/{time}_{metab}_correlation.{ext}", 
-                                       time = time, metab = metab, ext = i), device = i)
+                                       time = time, metab = metab, ext = i), device = i, dpi = 300, 
+                                        width = wid, height = hei,  units = "in")
   ggsave(plot = reduced_heatmap, filename = glue("output/figures/correlation/{time}_{metab}_scca.{ext}",
-                                          time = time, metab = metab, ext = i), device = i)
+                                          time = time, metab = metab, ext = i), device = i, dpi = 300, 
+                                        width = wid, height = hei, units = "in")
 }
 saveRDS(corr_heatmap, file = glue("output/figures/correlation/{time}_{metab}_correlation.rds", 
                                   time = time, metab = metab))
 saveRDS(reduced_heatmap, file = glue("output/figures/correlation/{time}_{metab}_scca.rds",
                                      time = time, metab = metab))
+
+cat(title, file = glue("output/figures/correlation/{time}_{metab}_labels.txt", time = time, metab = metab))
+
+print(glue("Time is {time} and metab type is {metab}", time = time, metab = metab))
 
 
 

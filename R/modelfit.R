@@ -2,6 +2,8 @@ library(optparse)
 library(caret)
 library(MLmetrics)
 library(phyloseq)
+library(doParallel)
+library(parallel)
 # Install 'randomforest', 'spls', 'gbm', 'xgboost', 'kernlab', 'glmnet', 'plyr'
 
 option_list <- list(
@@ -13,7 +15,8 @@ option_list <- list(
   make_option("--nrep", type = "integer", help = "Number of repetitions"),
   make_option("--metid", type = "integer", help = "Index of metabolite to fit"),
   make_option("--preprocess", type = "logical", help = "Whether to center and scale the x matrix"),
-  make_option("--metabtype", type = "character", help = "Type of metabolite data to inform back transformations")
+  make_option("--metabtype", type = "character", help = "Type of metabolite data to inform back transformations"),
+  make_option("--ncores", type = "integer", default = NULL, help = "Number of cores for xgboost job to speed things up")
 )
 
 opt <- parse_args(OptionParser(option_list = option_list))
@@ -27,7 +30,7 @@ opt <- parse_args(OptionParser(option_list = option_list))
 #' @param out.folds Number of outer folds  
 #' @param parallel Allows for parallel processing with caret for internal cross validation 
 modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabtype,
-                        folds = NULL, preprocess = F){
+                        folds = NULL, preprocess = F, ncores = NULL){
   # certain model translations to work between common knowledge and caret specific syntax
   model_translate <- list(enet = "glmnet", rf = "rf", svm_rbf = "svmRadial", gbm = "gbm", xgboost = "xgbTree",
                           spls = "spls")
@@ -76,7 +79,6 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabt
     predictors <- scale(predictors, center = T, scale = T)
     response <- scale(response, center = T, scale = F)
   }
-  print(predictors)
   for(i in 1:length(folds)){
     test <- folds[[i]]
     met.train <- response[-test]
@@ -84,15 +86,25 @@ modelfit.fn <- function(response, predictors, model, in.folds, out.folds, metabt
     tax.train <- predictors[-test,]
     tax.test <- predictors[test,]
     # fitting models 
-    if (model %in% c("xgboost", "enet", "spls", "rf", "svm_rbf", "gbm")){
+    if (model %in% c("enet", "spls", "rf", "svm_rbf", "gbm")){
       fit <- caret::train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]],
                           metric = "RMSE", tuneLength = tune_length, tuneGrid = tune_grid)
       predictions <- predict(fit, tax.test)
-      print(predictions)
     } else if (model == "logratiolasso"){
       stop("No implementation")
     } else if (model == "robregcc"){
       stop("No implementation")
+    } else if (model == "xgboost"){
+      if (is.null(ncores)){
+        ncores <- parallel::detectCores() - 1        
+      }
+      print(paste0("Using parallel with ncores = ", ncores))
+      cluster <- makeForkCluster(ncores)
+      registerDoParallel(cluster)
+      fit <- caret::train(x = tax.train, y = met.train, trControl = ctrl, method = model_translate[[model]],
+                          metric = "RMSE", tuneLength = tune_length, tuneGrid = tune_grid)
+      stopCluster(cluster)
+      predcitions <- predict(fit, tax.test)
     }
     # parsing outputs
     # back transformations 
@@ -122,8 +134,10 @@ met <- as(sample_data(data),"matrix")[,opt$metid]
 # running results as repeated CV
 result <- list()
 for (j in 1:opt$nrep){
+  print(paste0("Currently at rep: ", j))
   rep <- modelfit.fn(response = met, predictors = tax, model = opt$method, metabtype = opt$metabtype, 
-                     in.folds = opt$infolds, out.folds = opt$outfolds, preprocess = opt$preprocess)
+                     in.folds = opt$infolds, out.folds = opt$outfolds, preprocess = opt$preprocess,
+                     ncores = opt$ncores)
   name <- paste0("rep_", j)
   result[[name]] <- rep
 }

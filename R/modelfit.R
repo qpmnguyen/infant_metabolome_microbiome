@@ -2,6 +2,8 @@ library(optparse)
 library(caret)
 library(MLmetrics)
 library(phyloseq)
+library(parallel)
+library(doParallel)
 # Install 'randomforest', 'spls', 'gbm', 'xgboost', 'kernlab', 'glmnet', 'plyr'
 
 option_list <- list(

@@ -565,6 +565,13 @@
       "Repository": "CRAN",
       "Hash": "931fd68809dab4609b4d4b5702206066"
     },
+    "doParallel": {
+      "Package": "doParallel",
+      "Version": "1.0.15",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "1886c5bce3d9c0b4f9d0b113d76f9357"
+    },
     "dotCall64": {
       "Package": "dotCall64",
       "Version": "1.0-0",

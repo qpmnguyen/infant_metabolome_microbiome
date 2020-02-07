@@ -123,3 +123,13 @@ ordination_untar <- ggdraw() +
   draw_plot_label(label = c("A. 6 Weeks", "B. 12 Months"), x = c(0,0.5), y = c(0.95, 0.95), size = 20)
 
 save_plot(plot = ordination_untar, "./docs/publication_figures/ordination_plots_untar_eucl-eucl.png", dpi = 300, base_height = 7, base_width = 10)
+
+# plotting evaluation of prediction with borda ####
+boxplots <- readRDS(file = "output/figures/prediction/boxplot_across_all_mets.rds")
+borda_corr <- readRDS(file = "output/figures/prediction/borda_plots_tar.rds")
+borda_rmse <- readRDS(file = "output/figures/prediction/borda_plots_tar_rmse.rds")
+model_comparison <- ggdraw() + draw_plot(boxplots + theme(axis.title.x = element_blank()), x = 0, y = 0.5, width = 1, height = 0.5) +
+            draw_plot(borda_corr + theme(legend.position = "None", axis.title.x = element_blank()), x = 0.5, y = 0, width = 0.5, height = 0.5) +
+            draw_plot(borda_rmse + theme(legend.position = "None", axis.title.x = element_blank()), x = 0, y = 0, width = 0.5, height = 0.5) +
+            draw_label("Spearman correlation", y = 0.5, x = 0.61, fontface = "bold") + 
+            draw_label("RMSE", y = 0.5, x = 0.18, fontface = "bold")

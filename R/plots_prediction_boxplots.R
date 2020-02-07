@@ -75,6 +75,29 @@ names(metrics) <- c("corr", "r2", "rmse")
 (barplots <- ggplot(barplts, aes(x = model, y = value, fill = time)) + geom_violin() + geom_boxplot(alpha = 0.8, aes(color = time), show.legend = F) +
   facet_wrap(.~eval, scales = "free",  labeller = labeller(eval = metrics)) + scale_fill_viridis_d() + theme_pubr() + 
   labs(fill = "Time", y = "Mean across all repeats", x = "Models") + 
-  scale_x_discrete(labels = c("ElasticNet", "RandomForest", "SPLS", "SVM-RBF")) + theme(axis.text.x = element_text(angle = 90)))
+  scale_x_discrete(labels = c("ENet", "RF", "SPLS", "SVM-RBF")) + theme(axis.text.x = element_text(angle = 90)))
 saveRDS(barplots, file="output/figures/prediction/boxplot_across_all_mets.rds")
 ggsave(barplots, file = "output/figures/prediction/boxplot_across_all_mets.png", width = 15, height = 13, dpi = 300)
+
+borda_ranking <- matrix(rep(0,8),nrow = 2, ncol = 4)
+colnames(borda_ranking) <- c("enet", "rf", "svm", "spls")
+rownames(borda_ranking) <- c('6W', "12M")
+for (i in 1:length(timepoints)){
+  for (j in unique(barplts$met)){
+    data <- barplts %>% filter(time == timepoints[i], met == j, eval == 'rmse')
+    r <- rank(-data$value)
+    print(r)
+    for (k in 1:length(r)){
+      borda_ranking[i,r[k]] <- borda_ranking[i,r[k]] + (5 - k)
+    }
+  }
+}
+borda_ranking <- as.data.frame(borda_ranking) %>% rownames_to_column() %>% mutate(time = rowname) %>% select(-rowname) %>%
+  pivot_longer(-time, names_to = "model", values_to = "borda_count")
+#%>% pivot_longer(everything(), -rowname, names_to = "model", values_to = "borda_count")
+borda_plt <- ggplot(borda_ranking, aes(x = model, y = borda_count, fill = time)) + geom_bar(stat = "identity", position = "dodge") + 
+    scale_fill_viridis_d() + labs(fill = "Time", x = "Models", y = "Borda Score") +
+    scale_x_discrete(labels = c("ENet", "RF", "SPLS", "SVM-RBF"))  + theme_pubr() + theme(axis.text.x = element_text(vjust = 0.65)) 
+borda_plt
+ggsave(borda_plt, file = "output/figures/prediction/borda_plots_tar_rmse.png", width = 10, height = 12, dpi = 300)
+saveRDS(borda_plt, file = "output/figures/prediction/borda_plots_tar_rmse.rds")

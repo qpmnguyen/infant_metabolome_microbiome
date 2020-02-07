@@ -133,3 +133,17 @@ model_comparison <- ggdraw() + draw_plot(boxplots + theme(axis.title.x = element
             draw_plot(borda_rmse + theme(legend.position = "None", axis.title.x = element_blank()), x = 0, y = 0, width = 0.5, height = 0.5) +
             draw_label("Spearman correlation", y = 0.5, x = 0.61, fontface = "bold") + 
             draw_label("RMSE", y = 0.5, x = 0.18, fontface = "bold")
+
+# plotting results heatmap 
+heatmap1 <- readRDS(file = "output/figures/prediction/r2_tar_heatmap.rds")
+heatmap2 <- readRDS(file = "output/figures/prediction/corr_tar_heatmap.rds")
+heatmap3 <- readRDS(file = "output/figures/prediction/rmse_tar_heatmap.rds")
+heatmap_cobble <- ggdraw() + draw_plot(heatmap1, x = 0, y = 0.66, height = 0.30, width = 1) +
+  draw_plot(heatmap2, x = 0, y = 0.33, height = 0.30, width = 1) + 
+  draw_plot(heatmap3, x = 0, y = 0.02, height = 0.30, width = 1) + 
+  draw_label("A. R-squared", fontface = "bold", x = 0, y = 0.98, hjust = 0, size = 15) +
+  draw_label("B. Correlation", fontface = "bold", x = 0, y = 0.64, hjust = 0, size = 15) + 
+  draw_label("C. RMSE", fontface = "bold", x = 0, y = 0.32, hjust = 0, size = 15) + 
+  draw_text("6 Weeks", x = 0.2, y = 0, vjust = 0, hjust = 0, fontface = "bold", size = 15) + 
+  draw_text("12 Months", x = 0.7, y = 0, vjust = 0, hjust = 0, fontface = "bold", size = 15)
+save_plot(heatmap_cobble, file = "docs/publication_figures/heatmap_cobble_tar.png", dpi = 300, base_height = 15.5, base_width = 12)

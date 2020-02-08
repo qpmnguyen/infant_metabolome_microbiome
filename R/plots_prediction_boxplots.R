@@ -8,9 +8,10 @@ library(stringr)
 library(viridis)
 library(gridExtra)
 library(pheatmap)
+library(factoextra)
+library(Rankcluster)
 
-
-# plotting levels  
+# plotting levels violin plots take advantage of the entire distribution ####
 plot_comparison_per_metabolite <- function(eval, time, met){
   results <- readRDS(file = glue("output/analyses/prediction/processed/{met}_{eval}_by_met.rds", eval = eval, met = met))
   grid_plt <- list()
@@ -46,6 +47,7 @@ for (k in 1:length(eval_metrics)){
   }
 }
 
+# Plots of heatmaps by mean of means ####
 barplts <- list()
 for (k in 1:length(eval_metrics)){
   summary <- readRDS(file = glue("output/analyses/prediction/processed/tar_{eval}_by_met.rds", eval = eval_metrics[k]))
@@ -69,6 +71,7 @@ for (k in 1:length(eval_metrics)){
   barplts[[k]] <- eval2
 }
 
+# boxplots of average means across all metabolites ####
 barplts <- bind_rows(barplts)
 metrics <- c("Correlation", "R-squared", "RMSE")
 names(metrics) <- c("corr", "r2", "rmse")
@@ -79,25 +82,38 @@ names(metrics) <- c("corr", "r2", "rmse")
 saveRDS(barplots, file="output/figures/prediction/boxplot_across_all_mets.rds")
 ggsave(barplots, file = "output/figures/prediction/boxplot_across_all_mets.png", width = 15, height = 13, dpi = 300)
 
-borda_ranking <- matrix(rep(0,8),nrow = 2, ncol = 4)
-colnames(borda_ranking) <- c("enet", "rf", "svm", "spls")
-rownames(borda_ranking) <- c('6W', "12M")
-for (i in 1:length(timepoints)){
-  for (j in unique(barplts$met)){
-    data <- barplts %>% filter(time == timepoints[i], met == j, eval == 'rmse')
-    r <- rank(-data$value)
-    print(r)
-    for (k in 1:length(r)){
-      borda_ranking[i,r[k]] <- borda_ranking[i,r[k]] + (5 - k)
+# plotting all borda and getting the ranking matrices ####
+for (m in 1:length(eval_metrics)){
+  borda_ranking <- matrix(0,nrow = 2, ncol = 4)
+  colnames(borda_ranking) <- c("enet", "rf", "svm", "spls")
+  rownames(borda_ranking) <- c('6W', "12M")
+  rownames(rankings) <- unique(barplts$met)
+  colnames(rankings) <- c("enet", "rf", "svm", "spls")
+  for (i in 1:length(timepoints)){
+    rankings <- matrix(0, nrow = length(unique(barplts$met)), ncol = 4)
+    for (j in 1:length(unique(barplts$met))){
+      data <- barplts %>% filter(time == timepoints[i], met == unique(barplts$met)[j], eval == eval_metrics[m])
+      if (eval_metrics[m] == "rmse"){
+        r <- rank(-data$value)
+      } else {
+        r <- rank(data$value)
+      }
+      for (k in 1:length(r)){
+        borda_ranking[i,r[k]] <- borda_ranking[i,r[k]] + (5 - k)
+        rankings[j,r[k]] <- k
+      }
     }
+    distKendall()
   }
-}
-borda_ranking <- as.data.frame(borda_ranking) %>% rownames_to_column() %>% mutate(time = rowname) %>% select(-rowname) %>%
-  pivot_longer(-time, names_to = "model", values_to = "borda_count")
-#%>% pivot_longer(everything(), -rowname, names_to = "model", values_to = "borda_count")
-borda_plt <- ggplot(borda_ranking, aes(x = model, y = borda_count, fill = time)) + geom_bar(stat = "identity", position = "dodge") + 
+  borda_ranking <- as.data.frame(borda_ranking) %>% rownames_to_column() %>% mutate(time = rowname) %>% select(-rowname) %>%
+    pivot_longer(-time, names_to = "model", values_to = "borda_count")
+  #%>% pivot_longer(everything(), -rowname, names_to = "model", values_to = "borda_count")
+  borda_plt <- ggplot(borda_ranking, aes(x = model, y = borda_count, fill = time)) + geom_bar(stat = "identity", position = "dodge") + 
     scale_fill_viridis_d() + labs(fill = "Time", x = "Models", y = "Borda Score") +
     scale_x_discrete(labels = c("ENet", "RF", "SPLS", "SVM-RBF"))  + theme_pubr() + theme(axis.text.x = element_text(vjust = 0.65)) 
-borda_plt
-ggsave(borda_plt, file = "output/figures/prediction/borda_plots_tar_rmse.png", width = 10, height = 12, dpi = 300)
-saveRDS(borda_plt, file = "output/figures/prediction/borda_plots_tar_rmse.rds")
+  ggsave(borda_plt, file = glue("output/figures/prediction/borda_plots_tar_{eval}.png", eval = eval_metrics[m]), width = 10, height = 12, dpi = 300)
+  saveRDS(borda_plt, file = glue("output/figures/prediction/borda_plots_tar_{eval}.png", eval = eval_metrics[m]))
+}
+
+
+ 

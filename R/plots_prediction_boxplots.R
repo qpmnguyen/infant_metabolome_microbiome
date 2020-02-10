@@ -1,4 +1,3 @@
-library(ggplot2)
 library(tidyverse)
 library(ggpubr)
 library(cowplot)
@@ -9,7 +8,8 @@ library(viridis)
 library(gridExtra)
 library(pheatmap)
 library(factoextra)
-library(Rankcluster)
+library(ggrepel)
+library(corrplot)
 
 # plotting levels violin plots take advantage of the entire distribution ####
 plot_comparison_per_metabolite <- function(eval, time, met){
@@ -87,10 +87,10 @@ for (m in 1:length(eval_metrics)){
   borda_ranking <- matrix(0,nrow = 2, ncol = 4)
   colnames(borda_ranking) <- c("enet", "rf", "svm", "spls")
   rownames(borda_ranking) <- c('6W', "12M")
-  rownames(rankings) <- unique(barplts$met)
-  colnames(rankings) <- c("enet", "rf", "svm", "spls")
   for (i in 1:length(timepoints)){
     rankings <- matrix(0, nrow = length(unique(barplts$met)), ncol = 4)
+    rownames(rankings) <- unique(barplts$met)
+    colnames(rankings) <- c("enet", "rf", "svm", "spls")
     for (j in 1:length(unique(barplts$met))){
       data <- barplts %>% filter(time == timepoints[i], met == unique(barplts$met)[j], eval == eval_metrics[m])
       if (eval_metrics[m] == "rmse"){
@@ -103,7 +103,20 @@ for (m in 1:length(eval_metrics)){
         rankings[j,r[k]] <- k
       }
     }
-    distKendall()
+    # getting distances 
+    distance <- factoextra::get_dist(rankings, method = "spearman")
+    ordinations <- ape::pcoa(distance, correction = "cailliez")
+    vec <- as.data.frame(ordinations$vectors)
+    ranking_plot <- ggplot(vec, aes(x = Axis.1, y = Axis.2)) + geom_point(color = viridis(100)[40]) + 
+      geom_text_repel(aes(label = rownames(rankings))) + theme_pubr() + labs(x = "MDS1", y = "MDS2")
+    plot(ranking_plot)
+    saveRDS(ranking_plot,
+            file = glue("output/figures/prediction/ranking_ordinations_tar_{eval}_{time}.png", 
+                        device = "png", eval = eval_metrics[m], time = timepoints[i]))
+    ggsave(ranking_plot, 
+           file = glue("output/figures/prediction/ranking_ordinations_tar_{eval}_{time}.png", 
+                       device = "png", eval = eval_metrics[m], time = timepoints[i]),
+           dpi = 300, width = 8, height = 8)
   }
   borda_ranking <- as.data.frame(borda_ranking) %>% rownames_to_column() %>% mutate(time = rowname) %>% select(-rowname) %>%
     pivot_longer(-time, names_to = "model", values_to = "borda_count")
@@ -114,6 +127,6 @@ for (m in 1:length(eval_metrics)){
   ggsave(borda_plt, file = glue("output/figures/prediction/borda_plots_tar_{eval}.png", eval = eval_metrics[m]), width = 10, height = 12, dpi = 300)
   saveRDS(borda_plt, file = glue("output/figures/prediction/borda_plots_tar_{eval}.png", eval = eval_metrics[m]))
 }
-
+ 
 
  

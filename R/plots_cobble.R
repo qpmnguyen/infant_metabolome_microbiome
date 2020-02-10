@@ -147,3 +147,22 @@ heatmap_cobble <- ggdraw() + draw_plot(heatmap1, x = 0, y = 0.66, height = 0.30,
   draw_text("6 Weeks", x = 0.2, y = 0, vjust = 0, hjust = 0, fontface = "bold", size = 15) + 
   draw_text("12 Months", x = 0.7, y = 0, vjust = 0, hjust = 0, fontface = "bold", size = 15)
 save_plot(heatmap_cobble, file = "docs/publication_figures/heatmap_cobble_tar.png", dpi = 300, base_height = 15.5, base_width = 12)
+
+# plotting rankings comparison
+p1 <- readRDS(file = "output/figures/prediction/ranking_ordinations_tar_rmse_6W.rds")
+p2 <- readRDS(file = "output/figures/prediction/ranking_ordinations_tar_rmse_12M.rds")
+p3 <- readRDS(file = "output/figures/prediction/ranking_ordinations_tar_corr_6W.rds")
+p4 <- readRDS(file = "output/figures/prediction/ranking_ordinations_tar_corr_12M.rds")
+
+rankings_pcoa <- ggdraw() + draw_plot(p1, x = 0, y = 0.51, height  = 0.47, width = 0.5) +
+  draw_plot(p2, x = 0.5, y = 0.51, height = 0.47, width = 0.5) + 
+  draw_plot(p3, x = 0, y = 0.03, height = 0.47, width = 0.5) + 
+  draw_plot(p4, x = 0.5, y = 0.03, height = 0.47, width = 0.5) + 
+  draw_label("A. RMSE", fontface = "bold", x = 0, y = 0.99, hjust = 0, size = 15) + 
+  draw_label("B. Correlation", fontface = "bold", x = 0, y = 0.51, hjust = 0, size = 15) + 
+  draw_text("6 Weeks", x = 0.2, y = 0.01, vjust = 0, hjust = 0, fontface = "bold", size = 15) + 
+  draw_text("12 Months", x = 0.7, y = 0.01, vjust = 0, hjust = 0, fontface = "bold", size = 15)
+save_plot(rankings_pcoa, file = "docs/publication_figures/rankings_cobble_tar.png", dpi = 300, base_height = 11, base_width = 12)
+
+
+

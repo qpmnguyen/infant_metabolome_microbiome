@@ -4,6 +4,21 @@ library(rsample)
 library(glue)
 library(rlist)
 
+if (Sys.info()['sysname'] == "Linux"){
+  if (Sys.info()['nodename'] == "discovery7.hpcc.dartmouth.edu"){
+    dir <- "/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles"
+  } else {
+    dir <- "/mnt/HoenLab/Lab/QNguyen/Results/Files"
+  }
+} else if (Sys.info()['sysname'] == "Darwin"){
+  if (file.exists("/Volumes/rc-1/Lab/") == T){
+    dir <- "/Volumes/rc-1/Lab/QNguyen/ResultsFiles"
+  } else if (file.exists("/Volumes/rc/Lab/") == T){
+    dir <- "/Volumes/rc/Lab/QNguyen/ResultsFiles"
+  }
+}
+
+
 get_bayesian <- function(eval, time, type = "tar"){
   summary_list <- readRDS(file = glue("output/analyses/prediction/processed/{type}_{eval}_by_met.rds", type = type, eval = eval))
   met_names <- names(summary_list)
@@ -16,7 +31,7 @@ get_bayesian <- function(eval, time, type = "tar"){
     attr(sample_obj, "class") <- c("vfold_cv", "rset", attr(sample_obj, "class"))
     attr(sample_obj, "v") <- 5
     attr(sample_obj, "repeats") <- 100
-    mod <- perf_mod(sample_obj) # standard gaussian
+    mod <- perf_mod(sample_obj, verbose = FALSE) # standard gaussian
     output[[i]] <- mod
   }
   names(output) <- met_names
@@ -34,11 +49,12 @@ for (i in 1:length(eval)){
   for (j in 1:length(timepoints)){
     print(paste("Eval", eval[i]))
     print(paste("Time", timepoints[j]))
-    if (file.exists(glue("/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/{time}_tar_{eval}_bayes.rds", time = timepoints[j], eval = eval[i])) == FALSE){
+    if (file.exists(glue("{dir}/{time}_tar_{eval}_bayes.rds", dir = dir, time = timepoints[j], eval = eval[i])) == FALSE){
       mods <- get_bayesian(eval = eval[i], time = timepoints[j], type = "tar")
-      saveRDS(mods, glue("/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/{time}_tar_{eval}_bayes.rds", time = timepoints[j], eval = eval[i]))
+      saveRDS(mods, glue("{dir}/{time}_tar_{eval}_bayes.rds", dir = dir, time = timepoints[j], eval = eval[i]))
     } else {
-      mods <- readRDS(file = glue("/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles/{time}_tar_{eval}_bayes.rds", time = timepoints[j], eval = eval[i]))
+      print("Existing Bayes file loaded")
+      mods <- readRDS(file = glue("{dir}/{time}_tar_{eval}_bayes.rds", dir = dir, time = timepoints[j], eval = eval[i]))
     }
     summaries <- lapply(mods, function(x){
       sample <- tidy(x)

@@ -68,6 +68,7 @@ corr_heatmap <- pheatmap(
   show_colnames = show_col,
   show_rownames = T,
   display_numbers = sig,
+  number_color = "red",
   labels_row = tax_names,
   labels_col = met_names,
   annotation_names_row = F,
@@ -81,9 +82,14 @@ corr_heatmap <- as.ggplot(corr_heatmap)
 
 #####-------plotting cca---------------####
 cca <- scca$cca
+sig <- t(apply(adj_mat, 1, function(x){
+  ifelse(x < 0.05, 1,0)
+}))
 tax_idx <- which(cca$u != 0)
 met_idx <- which(cca$v != 0)
 cca_mat <- cor_mat[tax_idx, met_idx]
+sig_mat <- sig[tax_idx, met_idx]
+sig_mat <- ifelse(sig_mat == 1, "X", "")
 # version which has family and genus name italicized 
 tax_names <- paste(tab[tax_idx,][,c("Genus")]) #Family-Genus names
 tax_names <- as.expression(sapply(tax_names, function(x){
@@ -122,6 +128,8 @@ reduced_heatmap <-  pheatmap(
   annotation_names_row = T,
   annotation_names_col = T,
   border_color      = NA,
+  display_numbers   = sig_mat,
+  number_color      = "red",
   show_colnames     = show_col,
   show_rownames     = T,
   labels_row        = tax_names,

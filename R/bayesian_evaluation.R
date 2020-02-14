@@ -3,12 +3,20 @@ library(tidyverse)
 library(rsample)
 library(glue)
 library(rlist)
+library(optparse)
 
+option_list <- list(
+  make_option("--input", help="Input rds file of results"),
+  make_option("--eval", help = "Evaluation metric"),
+  make_option("--time", help = "Time point of analysis"),
+  make_option("--ncores", type = "integer", default = NULL, help = "Number of cores for xgboost job to speed things up")
+)
+opt <- parse_args(OptionParser(option_list = option_list))
 if (Sys.info()['sysname'] == "Linux"){
   if (Sys.info()['nodename'] == "discovery7.hpcc.dartmouth.edu"){
     dir <- "/dartfs-hpc/rc/lab/H/HoenA/Lab/QNguyen/ResultsFiles"
   } else {
-    dir <- "/mnt/HoenLab/Lab/QNguyen/Results/Files"
+    dir <- "/mnt/HoenLab/Lab/QNguyen/ResultsFiles"
   }
 } else if (Sys.info()['sysname'] == "Darwin"){
   if (file.exists("/Volumes/rc-1/Lab/") == T){
@@ -18,9 +26,9 @@ if (Sys.info()['sysname'] == "Linux"){
   }
 }
 
+summary_list <- readRDS(file = opt$input)
 
-get_bayesian <- function(eval, time, type = "tar"){
-  summary_list <- readRDS(file = glue("output/analyses/prediction/processed/{type}_{eval}_by_met.rds", type = type, eval = eval))
+get_bayesian <- function(summary_list, eval, time, type = "tar"){
   met_names <- names(summary_list)
   output <- list()
   for (i in 1:length(met_names)){
@@ -44,6 +52,10 @@ timepoints <- c("6W", "12M")
 summary <- list('r2' = list('6W' = list(), '12M' = list()),
                 "corr" = list('6W' = list(), '12M' = list()),
                 "rmse" = list('6W' = list(), '12M' = list()))
+print(opt$eval)
+print(opt$time)
+mods <- get_bayesian(summary_list = summary_list, eval = opt$eval, time = opt$time, type = "untar")
+
 
 for (i in 1:length(eval)){
   for (j in 1:length(timepoints)){

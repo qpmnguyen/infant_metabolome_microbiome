@@ -54,75 +54,70 @@ save_plot(plot = untar_correlation_plot, "./docs/publication_figures/scc_plots_u
 
 # plotting ordination plot tar ####
 p1_6W <- readRDS(file = "output/figures/ordinations/gunifrac_euclidean/6W_tar_joint.rds")
-p2_12M <- readRDS(file = "output/figures/ordinations/gunifrac_euclidean/12M_tar_joint.rds")
-legend <- get_legend(
-  # create some space to the left of the legend
-  p1_6W + theme(legend.box.margin = margin(0, 0, 0, 12))
-)
-
-ordination_tar <- ggdraw() + 
-  draw_text("p-value = 0.376 \n Sum of Squares: 0.99", x = 0.3, y = 0.85, size = 14) + 
-  draw_plot(p1_6W + theme(plot.title = element_blank(), legend.position = "none"), x = 0, y = 0.05, width = 0.5, height = 0.75) + 
-  draw_text("p-value = 0.069 \n Sum of Squares: 0.99", x = 0.8, y = 0.85, size = 14) +
-  draw_plot(p2_12M + theme(plot.title = element_blank(), legend.position = "none"), x = 0.5, y = 0.05, width = 0.5, height = 0.75) + 
-  draw_plot(legend, x = 0, y = 0, height = 0.1) + 
-  draw_plot_label(label = c("A. 6 Weeks", "B. 12 Months"), x = c(0,0.5), y = c(0.95, 0.95), size = 20)
-
-save_plot(plot = ordination_tar, "./docs/publication_figures/ordination_plots_tar.png", dpi = 300, base_height = 7, base_width = 10)
-
-# plotting ordination plot untar ####
-p1_6W <- readRDS(file = "output/figures/ordinations/gunifrac_euclidean/6W_untar_joint.rds")
-p2_12M <- readRDS(file = "output/figures/ordinations/gunifrac_euclidean/12M_untar_joint.rds")
-legend <- get_legend(
-  # create some space to the left of the legend
-  p1_6W + theme(legend.box.margin = margin(0, 0, 0, 12))
-)
-
-ordination_untar <- ggdraw() + 
-  draw_text("p-value = 0.001 \n Sum of Squares: 0.94", x = 0.3, y = 0.85, size = 14) + 
-  draw_plot(p1_6W + theme(plot.title = element_blank(), legend.position = "none"), x = 0, y = 0.05, width = 0.5, height = 0.75) + 
-  draw_text("p-value = 0.006 \n Sum of Squares: 0.94", x = 0.8, y = 0.85, size = 14) +
-  draw_plot(p2_12M + theme(plot.title = element_blank(), legend.position = "none"), x = 0.5, y = 0.05, width = 0.5, height = 0.75) + 
-  draw_plot(legend, x = 0, y = 0, height = 0.1) + 
-  draw_plot_label(label = c("A. 6 Weeks", "B. 12 Months"), x = c(0,0.5), y = c(0.95, 0.95), size = 20)
-
-save_plot(plot = ordination_untar, "./docs/publication_figures/ordination_plots_untar.png", dpi = 300, base_height = 7, base_width = 10)
-
-# plotting ordination tar eucl-eucl ####
-p1_6W <- readRDS(file = "output/figures/ordinations/euclidean_euclidean/6W_tar_joint.rds")
+p1_12M <- readRDS(file = "output/figures/ordinations/gunifrac_euclidean/12M_tar_joint.rds")
+p2_6W <- readRDS(file = "output/figures/ordinations/euclidean_euclidean/6W_tar_joint.rds")
 p2_12M <- readRDS(file = "output/figures/ordinations/euclidean_euclidean/12M_tar_joint.rds")
 legend <- get_legend(
   # create some space to the left of the legend
   p1_6W + theme(legend.box.margin = margin(0, 0, 0, 12))
 )
 
-ordination_untar <- ggdraw() + 
-  draw_text("p-value = 0.057 \n Sum of Squares: 0.98", x = 0.3, y = 0.85, size = 14) + 
-  draw_plot(p1_6W + theme(plot.title = element_blank(), legend.position = "none"), x = 0, y = 0.05, width = 0.5, height = 0.75) + 
-  draw_text("p-value = 0.001 \n Sum of Squares: 0.95", x = 0.8, y = 0.85, size = 14) +
-  draw_plot(p2_12M + theme(plot.title = element_blank(), legend.position = "none"), x = 0.5, y = 0.05, width = 0.5, height = 0.75) + 
-  draw_plot(legend, x = 0, y = 0, height = 0.1) + 
-  draw_plot_label(label = c("A. 6 Weeks", "B. 12 Months"), x = c(0,0.5), y = c(0.95, 0.95), size = 20)
+p1_6W <- p1_6W + theme(plot.title = element_blank(), legend.position = "none")
+p2_6W <- p2_6W + theme(plot.title = element_blank(), legend.position = "none")
+p1_12M <- p1_12M + theme(plot.title = element_blank(), legend.position = "none")
+p2_12M <- p2_12M + theme(plot.title = element_blank(), legend.position = "none")
 
-save_plot(plot = ordination_untar, "./docs/publication_figures/ordination_plots_tar_eucl-ecul.png", dpi = 300, base_height = 7, base_width = 10)
+ordination_tar <- ggdraw() + 
+  draw_text("p-value = 0.057 \n Sum of Squares: 0.98", x = 0.3, y = 0.97, size = 12) + 
+  draw_text("A. Euclidean-Euclidean", fontface = "bold", x = 0, hjust = 0, y = 0.97) + 
+  draw_plot(p2_6W, x = 0, y = 0.53, height = 0.38, width = 0.5) + 
+  draw_text("p-value = 0.001 \n Sum of Squares: 0.95", x = 0.8, y = 0.97, size = 12) +
+  draw_plot(p2_12M, x = 0.5, y = 0.53, height = 0.38, width = 0.5) +
+  draw_text("B. Gunifrac-Euclidean", fontface = "bold", x = 0, hjust = 0, y = 0.5) + 
+  draw_text("p-value = 0.376 \n Sum of Squares: 0.99", x = 0.3, y = 0.5, size = 12, hjust = 0.5) +
+  draw_plot(p1_6W, x = 0, y = 0.07, height = 0.38, width = 0.5) + 
+  draw_text("p-value = 0.069 \n Sum of Squares: 0.99", x = 0.8, y = 0.5, size = 12) +
+  draw_plot(p1_12M, x = 0.5, y = 0.07 , height = 0.38, width = 0.5) + 
+  draw_text("6 weeks", fontface = "bold", x = 0.3, y = 0.05) + 
+  draw_text("12 months", fontface = "bold", x = 0.8, y = 0.05) + 
+  draw_plot(legend, x = 0, y = 0.02, vjust = 0.5, height = 0.02, width = 1)
 
-# plotting ordination untar eucl-eucl ####
-p1_6W <- readRDS(file = "output/figures/ordinations/euclidean_euclidean/6W_untar_joint.rds")
+  
+save_plot(plot = ordination_tar, "./docs/publication_figures/ordination_plots_tar.png", dpi = 300, 
+          base_height = 10, base_width = 12)
+
+# plotting ordination plot untar ####
+p1_6W <- readRDS(file = "output/figures/ordinations/gunifrac_euclidean/6W_untar_joint.rds")
+p1_12M <- readRDS(file = "output/figures/ordinations/gunifrac_euclidean/12M_untar_joint.rds")
+p2_6W <- readRDS(file = "output/figures/ordinations/euclidean_euclidean/6W_untar_joint.rds")
 p2_12M <- readRDS(file = "output/figures/ordinations/euclidean_euclidean/12M_untar_joint.rds")
 legend <- get_legend(
   # create some space to the left of the legend
   p1_6W + theme(legend.box.margin = margin(0, 0, 0, 12))
 )
 
-ordination_untar <- ggdraw() + 
-  draw_text("p-value = 0.043 \n Sum of Squares: 0.98", x = 0.3, y = 0.85, size = 14) + 
-  draw_plot(p1_6W + theme(plot.title = element_blank(), legend.position = "none"), x = 0, y = 0.05, width = 0.5, height = 0.75) + 
-  draw_text("p-value = 0.001 \n Sum of Squares: 0.94", x = 0.8, y = 0.85, size = 14) +
-  draw_plot(p2_12M + theme(plot.title = element_blank(), legend.position = "none"), x = 0.5, y = 0.05, width = 0.5, height = 0.75) + 
-  draw_plot(legend, x = 0, y = 0, height = 0.1) + 
-  draw_plot_label(label = c("A. 6 Weeks", "B. 12 Months"), x = c(0,0.5), y = c(0.95, 0.95), size = 20)
+p1_6W <- p1_6W + theme(plot.title = element_blank(), legend.position = "none")
+p2_6W <- p2_6W + theme(plot.title = element_blank(), legend.position = "none")
+p1_12M <- p1_12M + theme(plot.title = element_blank(), legend.position = "none")
+p2_12M <- p2_12M + theme(plot.title = element_blank(), legend.position = "none")
 
-save_plot(plot = ordination_untar, "./docs/publication_figures/ordination_plots_untar_eucl-eucl.png", dpi = 300, base_height = 7, base_width = 10)
+ordination_untar <- ggdraw() + 
+  draw_text("p-value = 0.043 \n Sum of Squares: 0.98", x = 0.3, y = 0.97, size = 12) + 
+  draw_text("A. Euclidean-Euclidean", fontface = "bold", x = 0, hjust = 0, y = 0.97) + 
+  draw_plot(p2_6W, x = 0, y = 0.53, height = 0.38, width = 0.5) + 
+  draw_text("p-value = 0.001 \n Sum of Squares: 0.94", x = 0.8, y = 0.97, size = 12) +
+  draw_plot(p2_12M, x = 0.5, y = 0.53, height = 0.38, width = 0.5) +
+  draw_text("B. Gunifrac-Euclidean", fontface = "bold", x = 0, hjust = 0, y = 0.5) + 
+  draw_text("p-value = 0.001 \n Sum of Squares: 0.94", x = 0.3, y = 0.5, size = 12, hjust = 0.5) +
+  draw_plot(p1_6W, x = 0, y = 0.07, height = 0.38, width = 0.5) + 
+  draw_text("p-value = 0.006 \n Sum of Squares: 0.94", x = 0.8, y = 0.5, size = 12) +
+  draw_plot(p1_12M, x = 0.5, y = 0.07 , height = 0.38, width = 0.5) + 
+  draw_text("6 weeks", fontface = "bold", x = 0.3, y = 0.05) + 
+  draw_text("12 months", fontface = "bold", x = 0.8, y = 0.05) + 
+  draw_plot(legend, x = 0, y = 0.02, vjust = 0.5, height = 0.02, width = 1)
+
+save_plot(plot = ordination_untar, "./docs/publication_figures/ordination_plots_untar.png", dpi = 300, 
+          base_height = 10, base_width = 12)
 
 # plotting evaluation of prediction with borda ####
 b1 <- readRDS(file = "output/figures/prediction/r2_tar_violinplots.rds")

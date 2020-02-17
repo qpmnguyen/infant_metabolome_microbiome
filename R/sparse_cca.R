@@ -1,3 +1,4 @@
+# Sparse canonical correlation analysis 
 library(PMA)
 library(vegan)
 library(phyloseq)

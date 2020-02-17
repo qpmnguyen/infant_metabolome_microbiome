@@ -1,3 +1,4 @@
+# This script seeks to perform plotting of univariate and multivariate correlation analyses 
 library(ggpubr)
 library(ggplot2)
 library(cowplot)

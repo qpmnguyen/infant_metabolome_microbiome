@@ -1,3 +1,4 @@
+# Model posterior distribution of test statistic based on model 
 library(tidyposterior)
 library(tidyverse)
 library(rsample)

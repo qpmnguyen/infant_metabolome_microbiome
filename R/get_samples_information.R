@@ -1,3 +1,4 @@
+# This script generates table 1 for both time points using covariate data 
 library(tidyverse)
 library(phyloseq)
 library(table1)

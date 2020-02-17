@@ -1,3 +1,5 @@
+# This script seeks to perform different types of plotting for bayesian analyses  
+
 library(tidyverse)
 library(ggpubr)
 library(cowplot)

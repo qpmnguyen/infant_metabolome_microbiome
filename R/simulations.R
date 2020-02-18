@@ -24,7 +24,7 @@ tax <- as(otu_table(data),"matrix")
 met <- sample_data(data)
 bts <- bootstraps(data = tax, times = 500)
 
-tax %*% as.matrix(rep(0.5, 72), ncol = 1, nrow = 72)
+dim(rnorm(72) %*% diag(rbinom(72, size = 1, prob = 0.5)))
 
 
 

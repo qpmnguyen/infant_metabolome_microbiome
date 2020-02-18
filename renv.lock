@@ -1493,13 +1493,6 @@
       "Repository": "CRAN",
       "Hash": "2ebd34a38f4248281096cc723535b66d"
     },
-    "parsnip": {
-      "Package": "parsnip",
-      "Version": "0.0.5",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Hash": "ececc6518695f3390f5dd7b45558c0e7"
-    },
     "pbkrtest": {
       "Package": "pbkrtest",
       "Version": "0.4-7",
@@ -2185,6 +2178,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "c78bdf1d16bd4ec7ecc86c6986d53309"
+    },
+    "yardstick": {
+      "Package": "yardstick",
+      "Version": "0.0.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "fdeb9dd70a68058fca68e94af04cfc62"
     },
     "zeallot": {
       "Package": "zeallot",

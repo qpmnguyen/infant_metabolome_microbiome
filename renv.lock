@@ -725,14 +725,10 @@
     },
     "dplyr": {
       "Package": "dplyr",
-      "Version": "0.8.3",
-      "Source": "CRAN",
+      "Version": "0.8.4",
+      "Source": "Repository",
       "Repository": "CRAN",
-      "RemoteType": "standard",
-      "RemoteRef": "dplyr",
-      "RemoteRepos": "https://cran.rstudio.com",
-      "RemoteSha": "0.8.3",
-      "Hash": "c426258a806b7e69613432b197b9954d"
+      "Hash": "3ecb1deedd4c4ad6ebf4605d263616f2"
     },
     "dygraphs": {
       "Package": "dygraphs",
@@ -1497,6 +1493,13 @@
       "Repository": "CRAN",
       "Hash": "2ebd34a38f4248281096cc723535b66d"
     },
+    "parsnip": {
+      "Package": "parsnip",
+      "Version": "0.0.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "ececc6518695f3390f5dd7b45558c0e7"
+    },
     "pbkrtest": {
       "Package": "pbkrtest",
       "Version": "0.4-7",
@@ -1776,10 +1779,10 @@
     },
     "rlang": {
       "Package": "rlang",
-      "Version": "0.4.2",
+      "Version": "0.4.4",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "ff31d958a041593f58ba04fc637d90dd"
+      "Hash": "09a36f36a13436be327dad3d000c8dd3"
     },
     "rlist": {
       "Package": "rlist",
@@ -1861,10 +1864,10 @@
     },
     "rstudioapi": {
       "Package": "rstudioapi",
-      "Version": "0.10",
+      "Version": "0.11",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "da31c988698b91fdf6a3e2317679d6cb"
+      "Hash": "33a5b27a03da82ac4b1d43268f80088a"
     },
     "rvcheck": {
       "Package": "rvcheck",

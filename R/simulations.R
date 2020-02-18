@@ -21,10 +21,15 @@ if (Sys.info()['sysname'] == "Darwin"){
 
 data <- readRDS(file = glue("{dir}/data/processed_12M_tar_phyloseq_obj.rds", dir = dir))
 tax <- as(otu_table(data),"matrix")
-met <- sample_data(data)
+met <- as(sample_data(data), "matrix")
 bts <- bootstraps(data = tax, times = 500)
 
-dim(rnorm(72) %*% diag(rbinom(72, size = 1, prob = 0.5)))
+beta <- as.vector(rnorm(72) %*% diag(rbinom(72, size = 1, prob = 0.05)))
 
+beta_naught <- 6/sqrt(10)
 
+y_mean <- beta_naught + tax %*% beta
+y <- y_mean + rnorm(282, mean = 0, sd = sd(y_mean) * (1/3))
+hist(y)
+lines(density(log(met[,1])))
 

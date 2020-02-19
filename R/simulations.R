@@ -14,12 +14,13 @@ library(foreach)
 
 option_list <- list(
   make_option("--input", help="Input rds file of results"),
-  make_option("--parallel", type = "boolean", help = "Check if parallel processing is required"),
-  make_option("--ncores", type = "integer", help = "Number of cores used if parallel is required", default = NULL)
+  make_option("--parallel", help = "Check if parallel processing is required"),
+  make_option("--ncores", help = "Number of cores used if parallel is required", default = NULL)
 )
+
 opt <- parse_args(OptionParser(option_list = option_list))
 
-data <- readRDS(file = input)
+data <- readRDS(file = opt$input)
 tax <- as(otu_table(data),"matrix")
 met <- as(sample_data(data), "matrix")
 

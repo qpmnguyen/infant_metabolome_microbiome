@@ -31,10 +31,13 @@ met <- as(sample_data(data), "matrix")
 #' @return data frame containing a met column as the outcome and everything else as predictors 
 simulate_y <- function(split, prob, snr){
   data <- analysis(split)
-  beta <- as.vector(rnorm(ncol(data)) %*% diag(rbinom(ncol(data), size = 1, prob = prob)))
-  beta_0 <- 6/sqrt(10)
-  y_mean <- beta_0 + data %*% beta
-  y <- y_mean + rnorm(nrow(data), mean = 0, sd = sd(y_mean)* (1/snr))
+  y <- rep(0, nrow(data))
+  while (sd(y) == 0){ # remake y until the standard deviation is larger than 0 
+    beta <- as.vector(rnorm(ncol(data)) %*% diag(rbinom(ncol(data), size = 1, prob = prob)))
+    beta_0 <- 6/sqrt(10)
+    y_mean <- beta_0 + as.matrix(data) %*% beta
+    y <- y_mean + rnorm(nrow(data), mean = 0, sd = sd(y_mean)* (1/snr))
+  }
   output <- as.data.frame(cbind(data, y))
   colnames(output)[ncol(output)] <- "met"
   return(output)
@@ -121,10 +124,9 @@ train_test_eval <- function(data){
   return(output)
 }
 
-
+grid <- expand.grid(snr = c(0.5), spar = c(0.05))
 grid <- expand.grid(snr = c(0.5, 0.7, 3, 5),
                     spar = c(0.05, 0.1, 0.5, 0.95))
-summary <- list()
 if (opt$parallel == T){
   if (is.null(opt$ncores) == TRUE){ # if no cores are specified 
     ncores <- parallel::detectCores() - 1        
@@ -137,14 +139,17 @@ if (opt$parallel == T){
   summary <- foreach(i=1:nrow(grid)) %dopar% {
     bts <- bootstraps(tax, times = 100)
     data <- map(bts$splits, simulate_y, prob = grid$spar[i], snr = grid$snr[i])
-    return(map(data, train_test_eval))
+    results <- map(data, train_test_eval)
+    return(results)
   }
   stopCluster(cluster) # remove cluster
 } else {
+  print("Processing non-parallel")
   summary <- foreach(i=1:nrow(grid)) %do% {
     bts <- bootstraps(tax, times = 100)
     data <- map(bts$splits, simulate_y, prob = grid$spar[i], snr = grid$snr[i])
-    return(map(data, train_test_eval))
+    results <- map(data, train_test_eval)
+    return(results)
   }
 }
 print("Finished simulations...")

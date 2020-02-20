@@ -124,7 +124,6 @@ train_test_eval <- function(data){
   return(output)
 }
 
-grid <- expand.grid(snr = c(0.5), spar = c(0.05))
 grid <- expand.grid(snr = c(0.5, 0.7, 3, 5),
                     spar = c(0.05, 0.1, 0.5, 0.95))
 if (opt$parallel == T){

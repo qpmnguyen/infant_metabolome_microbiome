@@ -82,10 +82,4 @@ for (i in eval){
   saveRDS(plt, file = glue("output/figures/prediction/{i}_tar_bordaplots.rds"))
 }
 
-# getting some detailed information 
-df1 <- bind_rows(summary[["corr"]][["6W"]], .id = "Metabolite") %>% mutate(model = gsub(paste0("6W","_"),"",model), time = "6W", 
-                                                                           metric = "r2")
-df2 <- bind_rows(summary[["corr"]][["12M"]], .id = "Metabolite") %>% mutate(model = gsub(paste0("12M","_"),"",model), time = "12M", 
-                                                                            metric = "r2")
-df2 %>% filter(lower > 0.3) %>% group_by(Metabolite) %>% summarise(max = max(mean)) %>% arrange(desc(max))
-df1 %>% filter(lower > 0.3) %>% group_by(Metabolite) %>% summarise(max = max(mean)) %>% arrange(desc(max))
+

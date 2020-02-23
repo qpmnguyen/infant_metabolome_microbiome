@@ -7,31 +7,27 @@ library(purrr)
 library(tidyverse)
 
 
-filenames <- list.files("output/analyses/prediction/raw/")
+option_list <- list(
+  make_option("--input", help="Input rds file of metnames"),
+  make_option("--parallel", help = "Check if parallel processing is required"),
+  make_option("--metabtype", help = "Tar or untar"),
+  make_option("--ncores", help = "Number of cores used if parallel is required", default = NULL)
+)
 
-# TODO add support for linux machine 
-get_names <- function(type){
-  if(Sys.info()["sysname"] == "Darwin"){
-    if (file.exists("/Volumes/rc-1/Lab/QNguyen")){
-      dir <- "/Volumes/rc-1/Lab/QNguyen"
-    } else if (file.exists("/Volumes/rc/Lab/QNguyen")){
-      dir <- "/Volumes/rc/Lab/QNguyen"
-    } else {
-      stop("Can't find mounted drives")
-    }
-  }
-  if (type == "tar"){
-    data <- readRDS(file = glue("{dir}/ResultsFiles/data/processed_6W_tar_phyloseq_obj.rds", dir = dir))
-    names <- colnames(sample_data(data))
-  } else if (type == "untar") {
-    data <- readRDS(file = glue("{dir}/ResultsFiles/data/processed_6W_untar_phyloseq_obj.rds", dir = dir))
-    names <- colnames(sample_data(data))
-  }
-  return(names)
+opt <- parse_args(OptionParser(option_list = option_list))
+
+filenames <- list.files(glue("output/analyses/prediction/raw/{metabtype}/", metabtype = opt$metabtype))
+
+#' @title Function to get the names of metabolites 
+#' @param input the data frame of the appropriate type when using opt$input
+get_names <- function(input){
+  input_dat <- readRDS(file = opt$input)
+  return(as.vector(colnames(sample_data(input_dat))))
 }
 
-
-# A function to get attribute types 
+#' @title A function to get attribute types 
+#' @param filename Name of the file after using list.files function
+#' @param attr name of attribute of interest
 get_attributes <- function(filename, attr){
   split <- strsplit(filename, "_")[[1]]
   time <- split[1]
@@ -49,6 +45,9 @@ get_attributes <- function(filename, attr){
   }
 }
 
+#' @title Getting rsquared score 
+#' @param result_list list of results cobbled together 
+#' @description The results_list is a list of each fold within each repeat of the prediction results 
 get_r2_score <- function(result_list){
   score <- map_df(result_list, function(.x){
     map_df(.x, function(.y){
@@ -91,7 +90,7 @@ get_summary <- function(filenames, type, met_names, eval){
     names <- filenames[which(ids == i & metab_type == type)]
     output <- expand.grid(id = glue("Repeat{i}", i = sprintf("%03d",1:100)), id2 = glue("Fold{j}", j = 1:5), stringsAsFactors = F)
     for (j in 1:length(names)){
-      res <- readRDS(file = glue("output/analyses/prediction/raw/{filename}", filename = names[j]))
+      res <- readRDS(file = glue("output/analyses/prediction/raw/{type}/{filename}", filename = names[j]))
       if (eval == "r2"){
         score <- get_r2_score(res)  
       } else if (eval == "corr") {
@@ -115,15 +114,14 @@ get_summary <- function(filenames, type, met_names, eval){
   return(summary)
 }
 
-for (i in c("tar")){
-  met_names <- get_names(i)
-  for (j in c("rmse", "corr", "r2")){
-    print(glue("Eval {metric}", metric = j))
-    print(glue("Met type {met}", met = i))
-    summary <- get_summary(filenames = filenames, type = i, met_names = met_names, eval = j)
-    saveRDS(summary, file = glue("output/analyses/prediction/processed/{type}_{eval}_by_met.rds", type = i, eval = j))
-  }
+met_names <- get_names(opt$input)
+for (j in c("corr", "r2")){
+  print(glue("Eval {metric}", metric = j))
+  print(glue("Met type {met}", met = opt$metabtype))
+  summary <- get_summary(filenames = filenames, type = opt$metabtype, met_names = met_names, eval = j)
+  saveRDS(summary, file = glue("output/analyses/prediction/processed/{type}_{eval}_by_met.rds", type = opt$metabtype, eval = j))
 }
+
 
 
 

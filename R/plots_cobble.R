@@ -131,9 +131,21 @@ model_comparison <- ggdraw() + draw_plot(b1 + theme(plot.title = element_text(hj
   draw_plot(bor1 + theme(legend.position = "none"), x = 0, y = 0.03, height = 0.47, width = 0.5) + 
   draw_plot(bor2 + theme(legend.position = "none"), x = 0.5, y = 0.03, height = 0.47, width = 0.5) 
 
-save_plot(model_comparison, filename = "docs/publication_figures/model_comparison.png", dpi = 300, base_width = 6, base_height = 6)
+save_plot(model_comparison, filename = "docs/publication_figures/model_comparison_tar.png", dpi = 300, base_width = 6, base_height = 6)
 
+# plotting evaluation of prediction with borda for untar ####
+b1 <- readRDS(file = "output/figures/prediction/r2_untar_violinplots.rds")
+b2 <- readRDS(file = "output/figures/prediction/corr_untar_violinplots.rds")
+bor2 <- readRDS(file = "output/figures/prediction/r2_untar_bordaplots.rds")
+bor1 <- readRDS(file = "output/figures/prediction/corr_untar_bordaplots.rds")
 
+model_comparison <- ggdraw() + draw_plot(b1 + theme(plot.title = element_text(hjust = 0.5)), x = 0, y = 0.51, height  = 0.47, width = 0.5) +
+  draw_plot(b2 + theme(plot.title = element_text(hjust = 0.5)), x = 0.5, y = 0.51, height = 0.47, width = 0.5) + 
+  draw_plot(bor1 + theme(legend.position = "none"), x = 0, y = 0.03, height = 0.47, width = 0.5) + 
+  draw_plot(bor2 + theme(legend.position = "none"), x = 0.5, y = 0.03, height = 0.47, width = 0.5) 
+
+save_plot(model_comparison, filename = "docs/publication_figures/model_comparison_untar.png", dpi = 300, base_width = 6, base_height = 6)
+  
 # plotting results heatmap 
 heatmap1 <- readRDS(file = "output/figures/prediction/r2_tar_heatmap.rds")
 heatmap2 <- readRDS(file = "output/figures/prediction/corr_tar_heatmap.rds")

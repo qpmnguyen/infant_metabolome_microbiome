@@ -12,6 +12,8 @@ opt <- parse_args(OptionParser(option_list = option_list))
 eval <- c("r2", "corr")
 timepoints <- c("6W", "12M")
 
+
+summary <- list(r2 = list("6W" = c(), "12M" = c()), corr = list("6W" = c(), "12M" = c()))
 for (i in 1:length(eval)){
   for (j in 1:length(timepoints)){
     print(paste("Eval", eval[i]))
@@ -32,3 +34,5 @@ for (i in 1:length(eval)){
   }
 }
 saveRDS(summary, file = glue("output/analyses/prediction/processed/bayesian_models_{met}_summary.rds", met = opt$metabtype))
+print("Completed!")
+

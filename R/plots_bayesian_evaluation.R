@@ -13,19 +13,22 @@ library(factoextra)
 library(ggrepel)
 
 
-summary <- readRDS(file = "output/analyses/prediction/processed/bayesian_models_summary.rds")
+summary_tar <- readRDS(file = "output/analyses/prediction/processed/bayesian_models_summary.rds")
+summary_untar <- readRDS(file = "output/analyses/prediction/processed/bayesian_models_untar_summary.rds")
 eval <- c("r2", "corr")
 time <- c("6W", "12M")
-get_forestplot <- function(time, eval){
-  df <- bind_rows(summary[[eval]][[time]], .id = "Metabolite") %>% mutate(model = gsub(paste0(time,"_"),"",model), time = time, metric = eval)
-  plot <- ggplot(df, aes(y = model, x = mean, xmin = lower, xmax = upper)) + geom_point() + geom_errorbarh() + 
-    facet_wrap(~Metabolite) + theme_pubr() + labs(y = "Models", x = "95% Credible Interval")
-  if (eval == "r2" | eval == "corr"){
-    plot <- plot + geom_vline(xintercept = 0, col = "red", linetype = 2)
-  }
+get_forestplot <- function(summary, time, eval){
+  df_6W <- bind_rows(summary_tar[[eval]][['6W']],.id = "Metabolite") %>% mutate(time = rep('6W', n())) %>% mutate(model = gsub("6W_","", model))
+  df_12M <- bind_rows(summary_tar[[eval]][['12M']], .id = "Metabolite") %>% mutate(time = rep('12M', n())) %>% mutate(model = gsub("12M_","", model))
+  df <- bind_rows(rows, rows2)
+  plot <- ggplot(df, aes(y = mean, x = model, ymin = lower, ymax = upper, color = time)) + 
+    geom_point(position = position_dodge(width = 0.9), size = 1) + geom_hline(yintercept = 0, col = "red", linetype = 2) + 
+    geom_errorbar(position = "dodge") + coord_flip() + theme_pubr()  + scale_color_viridis_d() + 
+    theme(panel.spacing.x = unit(1.5, "lines")) + labs(color = "Time") + 
+    facet_wrap(~Metabolite) + labs(x = "Models", y = "Posterior Mean (95% Credible Interval)")
   return(plot)
 }
-get_violinplot <- function(eval){
+get_violinplot <- function(summary, eval){
   if (eval == "r2"){
     title <- "R-squared"
   } else {
@@ -39,7 +42,7 @@ get_violinplot <- function(eval){
     theme(plot.title = element_text(face = "bold"))
   return(plt)
 }
-get_bordaplot <- function(eval){
+get_bordaplot <- function(summary, eval){
   df1 <- bind_rows(summary[[eval]][["6W"]], .id = "Metabolite") %>% mutate(model = gsub(paste0("6W","_"),"",model), time = "6W", metric = eval)
   df2 <- bind_rows(summary[[eval]][["12M"]], .id = "Metabolite") %>% mutate(model = gsub(paste0("12M","_"),"",model), time = "12M", metric = eval)
   df <- rbind(df1, df2)
@@ -68,18 +71,18 @@ get_bordaplot <- function(eval){
 
 # get plots 
 for (i in eval){
-  for (j in time){
-    plt <- get_forestplot(time = j, eval = i)
-    saveRDS(plt, file = glue("output/figures/prediction/{j}_{i}_forestplot.rds"))
-  }
-}
-for (i in eval){
-  plt <- get_violinplot(i)
-  saveRDS(plt, file = glue("output/figures/prediction/{i}_tar_violinplots.rds"))
-}
-for (i in eval){
-  plt <- get_bordaplot(i)
-  saveRDS(plt, file = glue("output/figures/prediction/{i}_tar_bordaplots.rds"))
+  plt <- get_forestplot(summary = summary_tar, eval = i)
+  saveRDS(plt, file = glue("output/figures/prediction/{i}_tar_forestplot.rds"))
 }
 
+for (k in c("tar", "untar")){
+  for (i in eval){
+    plt <- get_violinplot(summary = get(glue("summary_{type}", type = k)), i)
+    saveRDS(plt, file = glue("output/figures/prediction/{i}_{type}_violinplots.rds", i = i, type = k))
+  }
+  for (i in eval){
+    plt <- get_bordaplot(summary = get(glue("summary_{type}", type = k)), i)
+    saveRDS(plt, file = glue("output/figures/prediction/{i}_{type}_bordaplots.rds", i = i, type = k))
+  }
+}
 

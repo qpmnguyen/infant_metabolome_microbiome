@@ -165,22 +165,18 @@ rankings_pcoa <- ggdraw() + draw_plot(p1, x = 0, y = 0.51, height  = 0.47, width
 save_plot(rankings_pcoa, file = "docs/publication_figures/rankings_cobble_tar.png", dpi = 300, base_height = 11, base_width = 12)
 
 # plotting forest plots 
-p1 <- readRDS(file = "output/figures/prediction/6W_r2_forestplot.rds")
-p2 <- readRDS(file = "output/figures/prediction/12M_r2_forestplot.rds")
-p3 <- readRDS(file = "output/figures/prediction/6W_corr_forestplot.rds")
-p4 <- readRDS(file = "output/figures/prediction/12M_corr_forestplot.rds")
+p1 <- readRDS(file = "output/figures/prediction/r2_tar_forestplot.rds")
+p2 <- readRDS(file = "output/figures/prediction/corr_tar_forestplot.rds")
 
-forest_plot <- ggdraw() + draw_plot(p1 + theme(axis.title.x = element_blank(), panel.spacing = unit(1, "lines")), x = 0, y = 0.51, height  = 0.47, width = 0.5) +
-  draw_plot(p2 + theme(axis.title.x = element_blank(), axis.title.y = element_blank(), 
-                       panel.spacing = unit(1, "lines")), x = 0.5, y = 0.51, height = 0.47, width = 0.5) + 
-  draw_plot(p3 + theme(panel.spacing = unit(1, "lines")), x = 0, y = 0.03, height = 0.47, width = 0.5) + 
-  draw_plot(p4 + theme(axis.title.y = element_blank(), panel.spacing = unit(1, "lines")), x = 0.5, y = 0.03, height = 0.47, width = 0.5) + 
-  draw_label("A. R2", fontface = "bold", x = 0, y = 0.99, hjust = 0, size = 15) + 
-  draw_label("B. Correlation", fontface = "bold", x = 0, y = 0.51, hjust = 0, size = 15) + 
-  draw_text("6 Weeks", x = 0.2, y = 0.01, vjust = 0, hjust = 0, fontface = "bold", size = 15) + 
-  draw_text("12 Months", x = 0.7, y = 0.01, vjust = 0, hjust = 0, fontface = "bold", size = 15)
-forest_plot
-save_plot(forest_plot, file = "docs/publication_figures/forresplot_r2_corr_tar.png", dpi = 300, base_height = 15, base_width = 23)
+legend <- get_legend(p1)
+plot_grid(p1 + theme(axis.title.x = element_blank()),
+          p2 + theme(legend.position = "none"), nrow = 2, ncol =1, labels = c("A. R-squared", "B. Spearman Correlation"))
+
+forest_plot <- ggdraw() + draw_plot(p1 + theme(axis.title.x = element_blank()), x = 0, y = 0.5, width = 1, height = 0.5) + 
+  draw_plot(p2 + theme(legend.position = "none"), x = 0, y = 0, width = 1, height = 0.45) + 
+  draw_label("A. R-squared", fontface = "bold", x = 0, y = 0.98, hjust = 0, size = 15) + 
+  draw_label("B. Spearman Correlation", fontface = "bold", x = 0, y = 0.48, hjust = 0, size = 15)
+save_plot(forest_plot, file = "docs/publication_figures/forresplot_r2_corr_tar.png", dpi = 300, base_height = 13, base_width = 13)
 
 
 

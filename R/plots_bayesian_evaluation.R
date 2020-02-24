@@ -1,5 +1,4 @@
 # This script seeks to perform different types of plotting for bayesian analyses  
-
 library(tidyverse)
 library(ggpubr)
 library(cowplot)
@@ -11,7 +10,7 @@ library(gridExtra)
 library(pheatmap)
 library(factoextra)
 library(ggrepel)
-
+library(openxlsx)
 
 summary_tar <- readRDS(file = "output/analyses/prediction/processed/bayesian_models_summary.rds")
 summary_untar <- readRDS(file = "output/analyses/prediction/processed/bayesian_models_untar_summary.rds")
@@ -86,3 +85,29 @@ for (k in c("tar", "untar")){
   }
 }
 
+
+# export it out as files 
+export <- list("6W_targeted_corr" = c(), "6W_targeted_r2"=c(), "12M_targeted_corr" = c(), "12M_targeted_r2" = c(), 
+               "6W_untargeted_corr" = c(), "6W_untargeted_r2"=c(), "12M_untargeted_corr" = c(), "12M_untargeted_r2" = c())
+
+for (i in time){
+  for(j in eval){
+    for (k in c("targeted", "untargeted")){
+      if (k == "targeted"){
+        sum <- summary_tar
+      } else {
+        sum <- summary_untar
+      }
+      df <- bind_rows(sum[[j]][[i]],.id = "Metabolite") %>% 
+        mutate(time = rep(i, n())) %>% 
+        mutate(model = gsub(paste0(time,"_"),"", model))
+      df <- df %>% mutate_if(is.numeric, round, 3) %>% 
+        mutate("Posterior mean (95% CI)" = paste0(mean,"(",lower,",",upper,")")) %>% 
+        select(-mean,-lower,-upper,-time) %>%
+        pivot_wider(names_from = model, values_from = "Posterior mean (95% CI)")
+      export[[glue("{time}_{type}_{eval}", time = i, type = k, eval = j)]] <- df
+    }
+  }
+}
+export
+write.xlsx(export, file = "docs/Supplementary_file_1.xlsx", asTable = T)

@@ -75,6 +75,6 @@ print(opt$timepoint)
 input <- glue("output/analyses/prediction/processed/{mettype}_{eval}_by_met.rds", mettype = opt$metabtype, eval = opt$eval)
 summary_list <- readRDS(file = input)
 mods <- get_bayesian(summary_list = summary_list, time = opt$time, parallel = opt$parallel, ncores = opt$ncores)
-saveRDS(mods, file = glue("{dir}/{time}_tar_{eval}_bayes.rds", dir = opt$output_dir, time = opt$timepoint, eval = opt$eval))
+saveRDS(mods, file = glue("{dir}/{time}_{met}_{eval}_bayes.rds", dir = opt$output_dir, time = opt$timepoint, eval = opt$eval, met = opt$metabtype))
 
 

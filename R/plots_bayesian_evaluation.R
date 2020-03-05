@@ -19,7 +19,7 @@ time <- c("6W", "12M")
 get_forestplot <- function(summary, time, eval){
   df_6W <- bind_rows(summary_tar[[eval]][['6W']],.id = "Metabolite") %>% mutate(time = rep('6W', n())) %>% mutate(model = gsub("6W_","", model))
   df_12M <- bind_rows(summary_tar[[eval]][['12M']], .id = "Metabolite") %>% mutate(time = rep('12M', n())) %>% mutate(model = gsub("12M_","", model))
-  df <- bind_rows(rows, rows2)
+  df <- bind_rows(df_6W, df_12M)
   plot <- ggplot(df, aes(y = mean, x = model, ymin = lower, ymax = upper, color = time)) + 
     geom_point(position = position_dodge(width = 0.9), size = 1) + geom_hline(yintercept = 0, col = "red", linetype = 2) + 
     geom_errorbar(position = "dodge") + coord_flip() + theme_pubr()  + scale_color_viridis_d() + 

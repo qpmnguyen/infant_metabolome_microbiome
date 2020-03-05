@@ -51,8 +51,8 @@ total_pos <- map2_df(pos_summaries, 1:length(pos_summaries), function(.x, .y){
 total_neg <- full_join(get_eval(neg_summaries, "r2", "neg"), get_eval(neg_summaries, "corr", "neg"))
 
 # plotting
-total_pos$snr <- as.factor(total$snr)
-total_pos$spar <- as.factor(total$spar)
+total_pos$snr <- as.factor(total_pos$snr)
+total_pos$spar <- as.factor(total_pos$spar)
 neg_filtered <- total_neg %>% group_by(model, eval) %>% summarise(mean = mean(value[is.infinite(value) != TRUE]), 
                                                                   lower = quantile(value[is.infinite(value) != TRUE], 0.05), 
                                                                   upper = quantile(value[is.infinite(value) != TRUE], 0.95))

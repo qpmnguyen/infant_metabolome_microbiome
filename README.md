@@ -1,4 +1,4 @@
-# Reproducible Analyses for manuscript "Healthy Infant Metabolomes are Robust to Normal Variations in Microbiome"
+# Reproducible Analyses for manuscript "Infant Gut Metabolome is Robust to Stochastic Variations in the Microbiome"
 
 This repository hosts reproducible workflow for analyses represented in the manuscript "Healthy Infant Metabolomes are Robust to Normal Variations in Microbiome" by Nguyen et al. 2019. 
 
@@ -11,6 +11,4 @@ The snakemake pipeline will generate the following folders:
 * `reports\`: Contain all Rmarkdown reports.  
 * `analyses\`: Intermediary analyses results in `.rds` file.  
 * `data\`: Data folder.  
-* `temp\`: Intermediary non-analyses files such as alignment for trees.  
-
-You can run these results using `snakemake` and the `Snakefile` with your own data. 
+* `temp\`: Intermediary non-analyses fil

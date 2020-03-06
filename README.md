@@ -1,14 +1,14 @@
-# Reproducible Analyses for manuscript "Infant Gut Metabolome is Robust to Stochastic Variations in the Microbiome"
+# Infant Gut Metabolome is Robust to Stochastic Variations in the Microbiome
 
-This repository hosts reproducible workflow for analyses represented in the manuscript "Healthy Infant Metabolomes are Robust to Normal Variations in Microbiome" by Nguyen et al. 2019. 
+This repository hosts reproducible scripts for analyses presented in the manuscript workflow for analyses represented in the manuscript "Healthy Infant Metabolomes are Robust to Normal Variations in Microbiome" by Nguyen et al. 2020 currently in prep.  
 
-`snakemake` is utilized to produce a reproducible data analyses pipeline with easily visualizable rulegraph and modular pieces that can be cleanly modified. It also allows for automation of figure generation with appropriate data. Due to propriety of data, the file `data_directory.csv`is not shared and as such the first step of the pipeline can be skipped.  
+Scripts are all modularized. Argument help can be accessed by running `Rscript script_name.R --help`. Workflow will be described in detail in paper with the following general schematic. The easiest way is to set up `snakemake` scripts.  
 
-![Current Data pipeline](./dag.svg)
+No data is currently provided as the manuscript is being prepared. Dependencies can be accessed using the `renv.lock` file through the `renv` package in R. A docker image is also in the works.  
+```r 
+install.packages('renv')
+renv::restore()
+```  
 
-The snakemake pipeline will generate the following folders:  
-* `figures\`: Contain all figures of the paper.  
-* `reports\`: Contain all Rmarkdown reports.  
-* `analyses\`: Intermediary analyses results in `.rds` file.  
-* `data\`: Data folder.  
-* `temp\`: Intermediary non-analyses fil
+
+

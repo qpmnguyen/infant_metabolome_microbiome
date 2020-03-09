@@ -67,3 +67,6 @@ healthy_infants_robust_metabolome.code-workspace
 temp/
 extracting.R 
 void_scripts.R
+outputs/
+docs/
+snakefiles/

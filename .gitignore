@@ -66,3 +66,4 @@ plots_cobble.R
 outputs/
 docs/
 snakefiles/
+decontam.R

@@ -59,14 +59,10 @@ healthy_infants_robust_metabolome.code-workspace
 
 # snakemake logs and outputs 
 .snakemake/
-# logs/
-# figures/
-# temp/
-# reports/
-# analyses/
 temp/
 extracting.R 
 void_scripts.R
+plots_cobble.R
 outputs/
 docs/
 snakefiles/

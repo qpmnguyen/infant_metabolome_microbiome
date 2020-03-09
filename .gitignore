@@ -63,7 +63,7 @@ temp/
 extracting.R 
 void_scripts.R
 plots_cobble.R
-outputs/
+output/
 docs/
 snakefiles/
 decontam.R

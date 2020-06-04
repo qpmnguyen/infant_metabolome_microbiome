@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  processx:
+    build:
+      context: .
+    volumes:
+      - .:/main
+      - C:/Users/quang/AppData/Local/renv/cache/v5/R-3.6/x86_64-w64-mingw32:/main/renv/cache

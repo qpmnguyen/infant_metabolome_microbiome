@@ -63,10 +63,9 @@ temp/
 extracting.R 
 void_scripts.R
 plots_cobble.R
-output/
-docs/
 snakefiles/
-decontam.R
 processing_get_covariate.R
 NERIC.bib
 test_cache/
+.ipynb_checkpoints/
+.ipynb

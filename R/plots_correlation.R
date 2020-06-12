@@ -49,7 +49,7 @@ idx_met <- which(apply(sig,2, function(x){
   all(x == 0)
 }) == F)
 
-sig <- ifelse(sig == 1, "X", "")
+#sig <- ifelse(sig == 1, "X", "")
 
 tax_names <- paste(tab[,c("Genus")]) #Family-Genus names
 tax_names <- as.expression(sapply(tax_names, function(x){
@@ -62,13 +62,15 @@ met_names <- colnames(cor_mat)
 row <- data.frame("Family" = as.factor(family_names), check.names = F)
 rownames(row) <- rownames(cor_mat)
 
+cor_mat[which(sig == 0, arr.ind = T)] <- NA 
+
 corr_heatmap <- pheatmap(
   mat = cor_mat,
   color = viridis(40),
   border_color = NA,
   show_colnames = show_col,
   show_rownames = T,
-  display_numbers = sig,
+  #display_numbers = sig,
   number_color = "red",
   labels_row = tax_names,
   labels_col = met_names,
@@ -76,10 +78,12 @@ corr_heatmap <- pheatmap(
   annotation_names_col = F,
   drop_levels = TRUE,
   fontsize = 10, 
-  legend = F
+  legend = F,cluster_rows = F, cluster_cols = F,
+  na_col = "beige"
 )
 
 corr_heatmap <- as.ggplot(corr_heatmap)
+
 
 #####-------plotting cca---------------####
 cca <- scca$cca
@@ -90,12 +94,13 @@ tax_idx <- which(cca$u != 0)
 met_idx <- which(cca$v != 0)
 cca_mat <- cor_mat[tax_idx, met_idx]
 sig_mat <- sig[tax_idx, met_idx]
-sig_mat <- ifelse(sig_mat == 1, "X", "")
+#sig_mat <- ifelse(sig_mat == 1, "X", "")
 # version which has family and genus name italicized 
 tax_names <- paste(tab[tax_idx,][,c("Genus")]) #Family-Genus names
 tax_names <- as.expression(sapply(tax_names, function(x){
   bquote(italic(.(x)) ~ "spp.")
 }))
+
 
 #tax_names <- paste(tab[tax_idx,][,c("Genus")], "spp.") # italicized species names 
 family_names <- tab[tax_idx,][,c("Family")]
@@ -119,7 +124,7 @@ if (raw_pval == 0){
                 "(Bootstrapped 95% CI:", round(quantile(scca$boot$t, 0.05),3), "-", round(quantile(scca$boot$t, 0.95), 3),
                 "; Permutation p-value :", raw_pval,")")
 }
-
+cca_mat[which(sig_mat == 0, arr.ind = 1)] <- NA
 reduced_heatmap <-  pheatmap(
   mat               = cca_mat,
   annotation_row    = row,
@@ -129,7 +134,9 @@ reduced_heatmap <-  pheatmap(
   annotation_names_row = T,
   annotation_names_col = T,
   border_color      = NA,
-  display_numbers   = sig_mat,
+  #display_numbers   = sig_mat,
+  cluster_rows = F,
+  cluster_cols = F,
   number_color      = "red",
   show_colnames     = show_col,
   show_rownames     = T,
@@ -137,7 +144,8 @@ reduced_heatmap <-  pheatmap(
   drop_levels       = TRUE,
   fontsize          = 11,
   cex = 1, 
-  legend = T
+  legend = T,
+  na_col = "beige"
 )
 reduced_heatmap <- as.ggplot(reduced_heatmap)
 

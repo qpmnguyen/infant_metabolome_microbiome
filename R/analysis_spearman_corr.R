@@ -1,46 +1,28 @@
+# This script contains function to do pairwise spearman correlation with BH correction
 library(vegan)
 library(phyloseq)
-library(optparse)
 library(Hmisc)
 
-option_list <- list(
-  make_option("--input", help = "Input file for data loading"),
-  make_option("--output", help = "Output file for data loading"),
-  make_option("--metric", help = "Correlation metric"),
-  make_option("--MHC", help = "multiple hypothesis correction metric")
-)
-
-opt <- parse_args(OptionParser(option_list = option_list))
-
-data <- readRDS(file = opt$input)
-
-tax <- as(otu_table(data), "matrix")
-met <- as(sample_data(data), "matrix")
-print(dim(tax))
-print(dim(met))
-
-#(met)[36] <- "pi-Methylhistidine" # unicode issues 
-
-# simple correlation
-correlation <- cor(tax, met, method = opt$metric)
-
-# pairwise correlation
-p_mat <- t(apply(tax, 2, function(x){
-  p_vals <- c()
-  print(length(x))
-  for (i in 1:ncol(met)){
-    p_vals[i] <- cor.test(x = x, y = met[,i], method = opt$metric)$p.value
-  }
-  return(p_vals)
-}))
-
-# BH adjustment 
-adj_mat <- matrix(p.adjust(as.vector(p_mat), method = opt$MHC), ncol = ncol(p_mat), nrow = nrow(p_mat), byrow = F) # MHC adjustment
-
-result <- list(
-  cor_mat = correlation,
-  p_mat = adj_mat,
-  tax_tab = tax_table(data)
-)
-
-saveRDS(file = opt$output, object = result)
+spearman_main <- function(data){
+  tax <- as(otu_table(data))
+  met <- as(sample_data(data))
+  correlation <- cor(tax, met, method = "spearman")
+  # pairwise testing correlation
+  p_mat <- t(apply(tax, 2, function(x){
+    p_vals <- c()
+    print(length(x))
+    for (i in 1:ncol(met)){
+      p_vals[i] <- cor.test(x = x, y = met[,i], method = "spearman")$p.value
+    }
+    return(p_vals)
+  }))
+  # p-value adjustment using BH
+  adj_mat <- matrix(p.adjust(as.vector(p_mat), method = "BH"), 
+         ncol = ncol(p_mat), nrow = nrow(p_mat), byrow = F)
+  output <- list(
+    cor_mat = correlation,
+    p_mat = adj_mat,
+    tax_tab = as(tax_table(data),"matrix")
+  )
+  return(output)
+}

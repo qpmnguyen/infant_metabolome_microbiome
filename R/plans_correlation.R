@@ -25,4 +25,5 @@ plan <- drake::drake_plan(
   )
 )
 
+drake::predict_runtime(plan)
 vis_drake_graph(plan)

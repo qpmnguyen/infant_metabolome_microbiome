@@ -4,8 +4,8 @@ library(phyloseq)
 library(Hmisc)
 
 spearman_main <- function(data){
-  tax <- as(otu_table(data))
-  met <- as(sample_data(data))
+  tax <- as(otu_table(data), "matrix")
+  met <- as(sample_data(data), "matrix")
   correlation <- cor(tax, met, method = "spearman")
   # pairwise testing correlation
   p_mat <- t(apply(tax, 2, function(x){

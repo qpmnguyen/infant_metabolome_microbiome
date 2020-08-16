@@ -23,9 +23,20 @@ plan <- drake::drake_plan(
   scca = target(
     sparse_cca_main(data, n_boot = 5000, n_perm = 1000),
     transform = map(data)
-  )
+  ),
+  output_spearman = target({
+    dir.create("drake_procrustes/")
+    saveRDS(spearman, file = glue("drake_procrustes/{time}_{mettype}_spearman.rds",
+                                    time = time, mettype = mettype))
+  }, transform = map(spearman), format = "file"),
+  output_scca = target({
+    dir.create("drake_procrustes/")
+    saveRDS(scca, file = glue("drake_procrustes/{time}_{mettype}_scca.rds",
+                                    time = time, mettype = mettype))
+  }, transform = map(scca), format = "file")
 )
 
+
 drake::predict_runtime(plan)
-#vis_drake_graph(plan)
+vis_drake_graph(plan)
 make(plan)

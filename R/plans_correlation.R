@@ -8,7 +8,6 @@ source("R/analysis_spearman_corr.R")
 source("R/analysis_sparse_cca.R")
 
 plan <- drake::drake_plan(
-  max_expand = 1, 
   data = target(
     readRDS(file = get_dir(time, mettype, data_stage = "processed", sens = T)),
     transform = cross(

@@ -69,3 +69,4 @@ NERIC.bib
 test_cache/
 .ipynb_checkpoints/
 .ipynb
+drake_procrustes/

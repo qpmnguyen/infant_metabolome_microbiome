@@ -20,7 +20,7 @@ plan <- drake::drake_plan(
     transform = map(data)
   ),
   scca = target(
-    sparse_cca_main(data, n_boot = 1, n_perm = 1),
+    sparse_cca_main(data, n_boot = 5000, n_perm = 1000),
     transform = map(data)
   ),
   output_spearman = target({

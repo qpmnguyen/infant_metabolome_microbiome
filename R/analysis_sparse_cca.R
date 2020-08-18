@@ -53,7 +53,7 @@ sparse_cca_main <- function(data, n_boot, n_perm){
   # bootstrapped 
   
   boot <- rsample::bootstraps(comb, times = n_boot) %>% 
-    mutate(cors = map(splits, ~ cca_fit(.x))) %>% unnest(cors)
+    mutate(cors = map(splits, ~ cca_fit(.x))) %>% unnest(cors) %>% select(c(id,cors))
   
   # permutation test 
   perm_test <- perm_test_cca(met, tax, n_perms = n_perm)

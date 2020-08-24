@@ -69,4 +69,5 @@ NERIC.bib
 test_cache/
 .ipynb_checkpoints/
 .ipynb
-drake_procrustes/
+# drake_procrustes/
+nohup.out

@@ -1,24 +1,11 @@
 library(ggpubr)
 library(cowplot)
-library(pheatmap)
 library(viridis)
 library(phyloseq)
 library(reshape2)
 library(ggplot2)
 library(glue)
-library(optparse)
 
-option_list <- list(
-  make_option("--input", help = "Input file for data loading"),
-  make_option("--tax_dist", help = "dist type for taxonomic data"),
-  make_option("--met_dist", help = "dist type for metabnomic data")
-)
-
-opt <- parse_args(OptionParser(option_list = option_list))
-
-input <- readRDS(file = opt$input)
-time <- tail(strsplit(strsplit(opt$input, "_")[[1]][1],"/")[[1]],1)
-metab <- strsplit(opt$input,"_")[[1]][2]
 
 # defining some plotting functions  
 plotting_ord <- function(ord_obj){
@@ -44,36 +31,42 @@ plotting_proc <- function(proc_test){
     stat_ellipse(mapping = aes(x = y1, y = y2, fill = "Metabolites"), geom = "polygon", show.legend = F, alpha = 0.2) + 
     scale_color_manual(name = "Ordination", values = viridis(100)[c(1,50)]) + 
     scale_fill_manual(name = "Ordination", values = viridis(100)[c(1,50)]) + 
-    labs(x = "MDS1", y = "MDS2", title = glue("Procrustes analysis of samples ordinated by taxonomy and metabolites \n (p={sig}, ss={ss})", 
+    labs(x = "MDS1", y = "MDS2", title = glue("p-value = {sig} \n Sum of Squares: {ss}", 
                                              sig = proc_test$signif, ss = round(proc_test$ss,2))) + 
     theme_pubr() + theme(plot.title=element_text(hjust = 0.5)) 
     # geom_segment(aes(x = y1, y = y2, xend = x1, yend = x2), arrow = arrow(length = unit(0.2, "cm")), alpha = 0.3)
   return(plt)
 }
 
-input <- input[[glue("tax_{tax_dist}_met_{met_dist}", tax_dist = opt$tax_dist, met_dist = opt$met_dist)]]
+combine_plot_ord <- function(plot1, plot2, plot3, plot4){
+  legend <- get_legend(
+    # create some space to the left of the legend
+    plot1 + theme(legend.box.margin = margin(0, 0, 0, 12))
+  )
+  
+  plot1 <- plot1 + theme(plot.title = element_blank(), legend.position = "none")
+  plot2 <- plot2 + theme(plot.title = element_blank(), legend.position = "none")
+  plot3 <- plot3 + theme(plot.title = element_blank(), legend.position = "none")
+  plot4 <- plot4 + theme(plot.title = element_blank(), legend.position = "none")
+  
+  ordination_tar <- ggdraw() + 
+    draw_text(plot3$labels$title, x = 0.3, y = 0.97, size = 12) + 
+    draw_text("A. Euclidean-Euclidean", fontface = "bold", x = 0, hjust = 0, y = 0.97) + 
+    draw_plot(plot3, x = 0, y = 0.53, height = 0.38, width = 0.5) + 
+    draw_text(plot4$labels$title, x = 0.8, y = 0.97, size = 12) +
+    draw_plot(plot4, x = 0.5, y = 0.53, height = 0.38, width = 0.5) +
+    draw_text("B. Gunifrac-Euclidean", fontface = "bold", x = 0, hjust = 0, y = 0.5) + 
+    draw_text(plot1$labels$title, x = 0.3, y = 0.5, size = 12, hjust = 0.5) +
+    draw_plot(plot1, x = 0, y = 0.07, height = 0.38, width = 0.5) + 
+    draw_text(plot2$labels$title, x = 0.8, y = 0.5, size = 12) +
+    draw_plot(plot2, x = 0.5, y = 0.07 , height = 0.38, width = 0.5) + 
+    draw_text("6 weeks", fontface = "bold", x = 0.3, y = 0.05) + 
+    draw_text("12 months", fontface = "bold", x = 0.8, y = 0.05) + 
+    draw_plot(legend, x = 0, y = 0.02, vjust = 0.5, height = 0.02, width = 1)
 
-### perform plotting 
-tax_ord <- input$tax_ord
-met_ord <- input$met_ord
-proc_test <- input$proc_test
-plot_tax <- plotting_ord(tax_ord)
-plot_met <- plotting_ord(met_ord)
-plot_proc <- plotting_proc(proc_test)
-saveRDS(object = plot_tax, file = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_tax.rds", 
-                                          time = time, metab = metab, tax_dist = opt$tax_dist, met_dist = opt$met_dist))
-saveRDS(object = plot_met, file = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_met.rds", 
-                                        time = time, metab = metab, met_dist = opt$met_dist, tax_dist = opt$tax_dist))
-saveRDS(object = plot_proc, file = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_joint.rds", 
-                                         time = time, metab = metab, tax_dist = opt$tax_dist, met_dist = opt$met_dist))
-for (j in c("svg","png")){
-  ggsave(plot = plot_tax, filename = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_tax.{ext}", 
-                                          time = time, metab = metab, tax_dist = opt$tax_dist, met_dist = opt$met_dist, ext = j), device = j)
-  ggsave(plot = plot_met, filename = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_met.{ext}", 
-                                          time = time, metab = metab, met_dist = opt$met_dist, tax_dist = opt$tax_dist, ext = j), device = j)
-  ggsave(plot = plot_proc, filename = glue("output/figures/ordinations/{tax_dist}_{met_dist}/{time}_{metab}_joint.{ext}", 
-                                          time = time, metab = metab, tax_dist = opt$tax_dist, met_dist = opt$met_dist, ext = j), device = j)
+  return(ordination_tar)
 }
+
 
 
 

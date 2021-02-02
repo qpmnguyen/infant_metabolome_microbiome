@@ -24,7 +24,7 @@ if (is.null(opt$output_folder)){
 #' @param metabtype "tar" or "untar"
 #' @param timepoint "6W" or "12M" 
 processing <- function(data, metabtype, timepoint){
-  data <- filter_taxa(data, function(x) count(x > 0)[2,2] >= 0.1*length(x), TRUE) # asvs as to be in at least 10% of samples 
+  data <- filter_taxa(data, function(x) sum(x > 0) >= 0.1*length(x), TRUE) # asvs as to be in at least 10% of samples 
   otu_table(data) <- otu_table(data) + 1 # adding pseudo count of 1
   data <- tax_glom(data, taxrank = "Genus") #aggregate to genus level 
   data <- transform_sample_counts(data, function(x) x/ sum(x)) # convert to relative abundance

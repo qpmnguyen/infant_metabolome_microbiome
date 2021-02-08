@@ -73,3 +73,5 @@ test_cache/
 nohup.out
 unique_ids_QN.csv
 support.R
+output/samp_ids_12m.csv
+output/samp_ids_6w.csv

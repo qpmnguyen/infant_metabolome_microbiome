@@ -67,21 +67,21 @@ seq_6w <- seq_6w[idx]
 write.fasta(seq_6w, names = names(seq_6w), file.out = "picrust2/seqs/6w_asv_filt.fa")
 
 biom_6w <- make_biom(
-  data = otu_table(samples_6w, taxa_are_rows = FALSE)
+  data = t(otu_table(samples_6w))
 )
 write_biom(biom_6w, biom_file = "picrust2/bioms/biom_6w.biom")
 
 # Get sequences for 12m 
-seq_12m <- readRDS(file = paste0(source_dir, "AH_Jan2020/sv12M_ST/seqtab.nochim.colnames_12M_ST.rds"))
+seq_12m <- readRDS(file = paste0(source_dir, "AH_Jan2020/sv12M_ST/seqtab.nochim.colnames_12M_ST.rds")) %>%
+  as.list()
 names(seq_12m) <- paste0("SV", 1:length(seq_12m))
 samples_12m <- filter_taxa(samples_12m, function(x) sum(x > 0) >= 0.1 * length(x), TRUE)
 idx <- which(names(seq_12m) %in% taxa_names(samples_12m))
 seq_12m <- seq_12m[idx]
 write.fasta(as.list(seq_12m), names = names(seq_12m), file.out = "picrust2/seqs/12m_asv_filt.fa")
 
-
 biom_12m <- make_biom(
-  data = otu_table(samples_12m, taxa_are_rows = FALSE)
+  data = t(otu_table(samples_12m))
 )
 write_biom(biom_12m, biom_file = "picrust2/bioms/biom_12m.biom")
 

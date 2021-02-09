@@ -84,3 +84,11 @@ biom_12m <- make_biom(
   data = otu_table(samples_12m, taxa_are_rows = FALSE)
 )
 write_biom(biom_12m, biom_file = "output/biom_12m.biom")
+
+
+# Section on getting quality scores post filtering 
+list.files(source_dir)
+filt_6w <- read.csv(file = paste0(source_dir, "filter.16s.6W.csv"))
+filt_12m <- read.csv(file = paste0(source_dir, "filter.16s.12M.csv"))
+tail(filt_6w)
+tail(filt_12m)

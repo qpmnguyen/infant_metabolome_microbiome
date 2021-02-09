@@ -1,0 +1,61 @@
+TIMEPOINTS = ["6w", "12m"]
+PATHFILES = ["path_abun_unstrat.tsv.gz", "path_abun_strat.tsv.gz"]
+PREDFILES = ["pred_metagenome_unstrat.tsv.gz", "pred_metagenome_contrib.tsv.gz", "seqtab_norm.tsv.gz", "weighted_nsti.tsv.gz"]
+
+rule all:
+    input:
+        expand("{timepoints}_descript.tsv.gz", timepoints=TIMEPOINTS)
+
+
+rule place_seqs:
+    input:
+        "seqs/{timepoints}_asv_filt.fa"
+    output: 
+        "temp/placer/{timepoints}_out.tre"
+    shell:
+        "place_seqs.py -s {input} -o {output} -p 5"
+
+rule state_pred:
+    input:
+        "temp/placer/{timepoints}_out.tre"
+    output:
+        nsti="temp/state_pred/{timepoints}_pred_nsti.tsv.gz",
+        ec="temp/state_pred/{timepoints}_pred_ec.tsv.gz"
+    shell:
+        """
+        hsp.py -i 16S -t {input} -o {output.nsti} -p 5 -n
+        hsp.py -i EC -t {input} -o {output.ec} -p 5
+        """
+
+rule generate_pred:
+    input:
+        biom="bioms/biom_{timepoints}.biom",
+        nsti="temp/state_pred/{timepoints}_pred_nsti.tsv.gz",
+        ec="temp/state_pred/{timepoints}_pred_ec.tsv.gz"
+    params:
+        out_dir="metagenome_pred_{timepoints}",
+    output:
+        "temp/metagenome_pred_{timepoints}/{predfiles}"
+    shell:
+        "metagenome_pipeline.py -i {input.biom} -m {input.nsti} -f {input.ec} -o {params.out_dir} --strat_out"
+
+rule pathway_inference:
+    input: 
+        "temp/metagenome_pred_{timepoints}/pred_metagenome_contrib.tsv.gz"
+    params:
+        out_dir="pathway_out_{timepoints}"
+    output:
+        "pathway_out_{timepoints}/{pathfiles}"
+    shell:
+        "pathway_pipeline.py -i {input} -o {params.out_dir} -p 5"  
+
+rule add_descriptions:
+    input:
+        "pathway_out_{timepoints}/path_abun_unstrat.tsv.gz" 
+    output:
+        "{timepoints}_descript.tsv.gz"
+    shell:
+        "add_descriptions.py -i {input} -m METACYC -o {output}"
+
+
+

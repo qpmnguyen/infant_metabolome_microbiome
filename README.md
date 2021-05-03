@@ -1,5 +1,7 @@
 # Multi-omic characterization of the taxa-function relationship in infant gut microbiomes
 
+[![DOI](https://zenodo.org/badge/200419468.svg)](https://zenodo.org/badge/latestdoi/200419468)
+
 This repository hosts reproducible scripts for analyses presented in the manuscript workflow for analyses represented in the manuscript "Multi-omic characterization of the taxa function relationship in infant gut microbiomes" by Nguyen et al. 2020 currently in prep.  
 
 Scripts are organized into modularized functions and fed into workflows designed in `drake`. call the `make(plan_name)` in the `make_<analysis>.R` file to execute the workflow. The only exception are the prediction models and Bayesian evaluations, since they are computational intensive and were ran in parallel on Dartmouth's Discovery cluster.     

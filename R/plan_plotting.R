@@ -30,14 +30,14 @@ correlation_plan <- drake::drake_plan(
   combined = target(
     combine_plots_correlation(scca_plot = scca, spearman_plot = spearman, scca_obj = scca_dat),
     transform = combine(spearman, scca, scca_dat, .by = c(time, mettype))
-  ),
+  ), 
   output_combined_plots = target({
     dir.create("drake/plots/")
     saveRDS(combined, file = glue("drake/plots/{time}_{mettype}_cor_combined_plt.rds",
                               time = time, mettype = mettype))
     ggsave(combined, filename = glue("drake/plots/{time}_{mettype}_cor_combined_plt.png",
                                      time = time, mettype = mettype), dpi = 300, 
-           width = 15, height = 12)
+           width = 18, height = 14)
   }, transform = map(combined), format = "file")
 )
 

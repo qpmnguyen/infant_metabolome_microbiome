@@ -30,6 +30,10 @@ unq_12m <- sample_names(samples_12m)
 mblids_6w <- crosswalk_6w$V2[match(unq_6w, crosswalk_6w$V1)]
 mblids_12m <- crosswalk_12m$V2[match(unq_12m, crosswalk_12m$V1)]
 
+# Retrieve metabolomic ids  
+uncids_6w <- crosswalk_6w$V3[match(unq_6w, crosswalk_6w$V1)]
+uncids_12m <- crosswalk_12m$V3[match(unq_12m, crosswalk_12m$V1)]
+
 # Retrieve Erika's matching
 list.files(source_dir)
 refid_6w <- read.csv(paste0(source_dir, "subject_samp_ids_6w.csv")) %>% pull(MBL_ID)

@@ -75,6 +75,7 @@ unique_ids_QN.csv
 support.R
 output/samp_ids_12m.csv
 output/samp_ids_6w.csv
+output/unc_samp_ids_*.csv
 
 # Ignore picrust files  
 picrust2/temp/

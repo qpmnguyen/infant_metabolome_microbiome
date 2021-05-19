@@ -11,6 +11,8 @@ library(pheatmap)
 library(factoextra)
 library(ggrepel)
 library(openxlsx)
+library(patchwork)
+library(ggsci)
 
 summary_tar <- readRDS(file = "output/analyses/prediction/processed/bayesian_models_summary.rds")
 summary_untar <- readRDS(file = "output/analyses/prediction/processed/bayesian_models_untar_summary.rds")
@@ -22,7 +24,9 @@ get_forestplot <- function(summary, time, eval){
   df <- bind_rows(df_6W, df_12M)
   plot <- ggplot(df, aes(y = mean, x = model, ymin = lower, ymax = upper, color = time)) + 
     geom_point(position = position_dodge(width = 0.9), size = 1) + geom_hline(yintercept = 0, col = "red", linetype = 2) + 
-    geom_errorbar(position = "dodge") + coord_flip() + theme_pubr()  + scale_color_viridis_d() + 
+    geom_errorbar(position = "dodge") + coord_flip() + 
+    theme_bw(base_size = 20)  + 
+    scale_color_npg() + 
     theme(panel.spacing.x = unit(1.5, "lines")) + labs(color = "Time") + 
     facet_wrap(~Metabolite) + labs(x = "Models", y = "Posterior Mean (95% Credible Interval)")
   return(plot)
@@ -63,8 +67,8 @@ get_bordaplot <- function(summary, eval){
   borda_ranking <- as.data.frame(borda_ranking) %>% rownames_to_column() %>% mutate(time = rowname) %>% select(-rowname) %>%
     pivot_longer(-time, names_to = "model", values_to = "borda_count")
   borda_plt <- ggplot(borda_ranking, aes(x = model, y = borda_count, fill = time)) + geom_bar(stat = "identity", position = "dodge") + 
-    scale_fill_viridis_d() + labs(fill = "Time", x = "Model", y = "Borda Score") +
-    theme_pubr() + theme(axis.text.x = element_text(vjust = 0.65))
+    scale_fill_npg() + labs(fill = "Time", x = "Model", y = "Borda Score") +
+    theme_bw() + theme(axis.text.x = element_text(vjust = 0.65)) 
   return(borda_plt)
 }
 
@@ -73,6 +77,14 @@ for (i in eval){
   plt <- get_forestplot(summary = summary_tar, eval = i)
   saveRDS(plt, file = glue("output/figures/prediction/{i}_tar_forestplot.rds"))
 }
+
+
+for (i in eval){
+  plt <- readRDS(file = glue("output/figures/prediction/{i}_tar_forestplot.rds"))
+  ggsave(plt, filename = glue("output/figures/prediction/{i}_tar_forestplot.png"), dpi = 300,
+         width = 14, height = 12)
+}
+
 
 for (k in c("tar", "untar")){
   for (i in eval){
@@ -111,3 +123,29 @@ for (i in time){
 }
 export
 write.xlsx(export, file = "docs/Supplementary_file_1.xlsx", asTable = T)
+
+
+# Combine forest plots 
+tar_plts <- vector(mode = "list", length = 2)
+for (i in seq_along(eval)){
+  tar_plts[[i]] <- get_forestplot(summary = summary_tar, time = "6W", eval = eval[i])
+}
+tar_plts[[1]] <- tar_plts[[1]] + theme(legend.position = "top", axis.title.x = element_blank()) 
+tar_plts[[2]] <- tar_plts[[2]] + theme(legend.position = "none")
+tar_forestplot <- tar_plts[[1]]/tar_plts[[2]] + plot_annotation(tag_levels = "A") & 
+  theme(plot.tag = element_text(face = "bold"))
+
+ggsave(tar_forestplot, filename = "docs/publication_figures/tar_forestplot.png", dpi = 300, 
+       width = 17, height = 18)
+
+untar_plts <- vector(mode = "list", length = 2)
+for (i in seq_along(eval)){
+  untar_plts[[i]] <- get_forestplot(summary = summary_untar, time = "6W", eval = eval[i])
+}
+untar_plts[[1]] <- untar_plts[[1]] + theme(legend.position = "top", axis.title.x = element_blank()) 
+untar_plts[[2]] <- untar_plts[[2]] + theme(legend.position = "none")
+untar_forestplot <- untar_plts[[1]]/untar_plts[[2]] + plot_annotation(tag_levels = "A") & 
+  theme(plot.tag = element_text(face = "bold"))
+
+ggsave(untar_forestplot, filename = "docs/publication_figures/untar_forestplot.png", dpi = 300, 
+       width = 17, height = 18)

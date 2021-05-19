@@ -45,7 +45,7 @@ correlation_plot <- function(data){
     annotation_names_row = F,
     annotation_names_col = F,
     drop_levels = TRUE,
-    fontsize = 10, 
+    fontsize = 14, 
     legend = F, cluster_rows = F, cluster_cols = F,
     na_col = "beige"
   )
@@ -102,7 +102,7 @@ scca_plot <- function(data, spearman_res){
     show_rownames     = T,
     labels_row        = tax_names,
     drop_levels       = TRUE,
-    fontsize          = 11,
+    fontsize          = 13,
     cex = 1, 
     legend = T,
     na_col = "beige"

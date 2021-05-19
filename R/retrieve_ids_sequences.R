@@ -6,6 +6,7 @@ library(phyloseq)
 library(tidyverse)
 library(biomformat)
 library(seqinr)
+library(glue)
 
 # get directory
 save_dir <- "//dartfs-hpc/rc/Lab/H/HoenA/Lab/QNguyen/ResultsFiles/"
@@ -33,6 +34,9 @@ mblids_12m <- crosswalk_12m$V2[match(unq_12m, crosswalk_12m$V1)]
 # Retrieve metabolomic ids  
 uncids_6w <- crosswalk_6w$V3[match(unq_6w, crosswalk_6w$V1)]
 uncids_12m <- crosswalk_12m$V3[match(unq_12m, crosswalk_12m$V1)]
+
+write.table(uncids_6w, file = "output/unc_samp_ids_6w.csv", row.names = FALSE, col.names = c("ids"))
+write.table(uncids_12m, file = "output/unc_samp_ids_12m.csv", row.names = FALSE, col.names = c("ids"))
 
 # Retrieve Erika's matching
 list.files(source_dir)
@@ -96,3 +100,10 @@ filt_6w <- read.csv(file = paste0(source_dir, "filter.16s.6W.csv"))
 filt_12m <- read.csv(file = paste0(source_dir, "filter.16s.12M.csv"))
 tail(filt_6w)
 tail(filt_12m)
+
+# Get IDS
+samples <- readRDS(file = glue("{dir}NMR/nmr_binned_ST_08May2018_v08Jan2020_v2.rds", dir = source_dir))
+master_tube_ids <- c(uncids_6w, uncids_12m)
+master_mblids <- c(mblids_6w, mblids_12m)
+drcc_ids <- samples %>% filter(TubeLabel %in% master_tube_ids) %>% pull(DRCC_ID)
+write.table(drcc_ids, file  = "output/drcc_ids.csv", row.names = FALSE, col.names = c("ids"))

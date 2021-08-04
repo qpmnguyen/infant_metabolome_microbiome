@@ -103,7 +103,9 @@ tail(filt_12m)
 
 # Get IDS
 samples <- readRDS(file = glue("{dir}NMR/nmr_binned_ST_08May2018_v08Jan2020_v2.rds", dir = source_dir))
+samples <- samples %>% rename("ids" = "TubeLabel")
+master_tube_ids <- bind_rows(tibble(ids = uncids_6w, time = "6W"), tibble(ids = uncids_12m, time = "12M"))
 master_tube_ids <- c(uncids_6w, uncids_12m)
-master_mblids <- c(mblids_6w, mblids_12m)
-drcc_ids <- samples %>% filter(TubeLabel %in% master_tube_ids) %>% pull(DRCC_ID)
-write.table(drcc_ids, file  = "output/drcc_ids.csv", row.names = FALSE, col.names = c("ids"))
+drcc_ids <- left_join(master_tube_ids, samples) %>% select(ids, time, DRCC_ID)
+
+write.table(drcc_ids, file  = "output/drcc_ids.csv", row.names = FALSE)
